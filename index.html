@@ -1,27 +1,148 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Bean Clicker</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bean Clicker: Fart Ascent 💨</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet" />
 </head>
 <body>
 
-  <div id="game">
-    <h1>🫘 Bean Clicker</h1>
-
-    <div id="stats">
-      <div>Coins: <span id="coins">0</span></div>
-      <div>Altitude: <span id="altitude">0</span>m</div>
+  <!-- ═══════════════ LEFT PANEL ═══════════════ -->
+  <div id="panel-left">
+    <div id="game-logo">
+      <span class="logo-bean">🫘</span>
+      <div class="logo-text">
+        <span class="logo-title">Bean Clicker</span>
+        <span class="logo-sub">Fart Ascent 💨</span>
+      </div>
     </div>
 
-    <button id="bean">🫘</button>
+    <!-- Stats -->
+    <div id="stats-box">
+      <div class="stat-row">
+        <span class="stat-label">🪙 Coins</span>
+        <span class="stat-value" id="stat-coins">0</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">💨 per click</span>
+        <span class="stat-value" id="stat-cpc">1</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">🤖 per second</span>
+        <span class="stat-value" id="stat-cps">0</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">📏 Altitude</span>
+        <span class="stat-value" id="stat-altitude">0 m</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">🏆 Max Alt</span>
+        <span class="stat-value" id="stat-maxalt">0 m</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">👆 Total Clicks</span>
+        <span class="stat-value" id="stat-clicks">0</span>
+      </div>
+    </div>
 
-    <div id="shop">
-      <button onclick="buyUpgrade('mult')">Upgrade Coins</button>
-      <button onclick="buyUpgrade('power')">Upgrade Fart Power</button>
+    <!-- Fart power meter -->
+    <div class="meter-label">💨 Fart Power: <span id="fart-power-val">10</span></div>
+    <div class="meter-track">
+      <div class="meter-fill" id="fart-meter"></div>
+    </div>
+
+    <!-- Combo -->
+    <div id="combo-display" class="hidden">
+      🔥 <span id="combo-count">0</span>x COMBO!
+    </div>
+
+    <!-- Zone display -->
+    <div id="zone-banner">
+      <span id="zone-emoji">🌱</span>
+      <span id="zone-name">Ground Level</span>
+    </div>
+
+    <!-- News ticker -->
+    <div id="news-ticker">
+      <div id="news-inner">
+        <span id="news-text">Welcome to Bean Clicker! Click the bean to begin your fart journey...</span>
+      </div>
+    </div>
+
+    <!-- Rebirth -->
+    <button id="rebirth-btn" class="rebirth-btn disabled" onclick="game.doRebirth()">
+      ⭐ Rebirth <small>(need 10,000m)</small>
+    </button>
+    <div id="rebirth-info" class="hidden">⭐ Rebirth <span id="rebirth-count">0</span> — ×<span id="rebirth-mult">1</span> permanent bonus</div>
+  </div>
+
+  <!-- ═══════════════ CENTER PANEL ═══════════════ -->
+  <div id="panel-center">
+    <!-- Sky background layers -->
+    <div id="sky-bg">
+      <div class="sky-layer" id="sky-clouds"></div>
+      <div class="sky-layer" id="sky-stars"></div>
+    </div>
+
+    <!-- Character -->
+    <div id="character-wrap">
+      <div id="character">🧍</div>
+      <div id="fart-cloud"></div>
+    </div>
+
+    <!-- Bean -->
+    <div id="bean-wrap">
+      <div id="bean-btn" onclick="game.click(event)">
+        <span id="bean-emoji">🫘</span>
+        <div id="bean-shine"></div>
+      </div>
+      <div id="bean-hint">Click the bean!</div>
+    </div>
+
+    <!-- Particles container -->
+    <div id="particles"></div>
+    <!-- Floating texts -->
+    <div id="floats"></div>
+
+    <!-- Milestones popup -->
+    <div id="milestone-popup" class="hidden">
+      <span id="milestone-text">🎉 New Zone!</span>
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <!-- ═══════════════ RIGHT PANEL ═══════════════ -->
+  <div id="panel-right">
+    <!-- Tabs -->
+    <div id="shop-tabs">
+      <button class="tab-btn active" onclick="game.setTab('upgrades')" id="tab-upgrades">⚗️ Upgrades</button>
+      <button class="tab-btn" onclick="game.setTab('skins')" id="tab-skins">🎨 Skins</button>
+      <button class="tab-btn" onclick="game.setTab('stats')" id="tab-stats">📊 Stats</button>
+    </div>
+
+    <!-- Upgrades Tab -->
+    <div id="tab-content-upgrades" class="tab-content active">
+      <div class="shop-section-title">🛒 Upgrade Shop</div>
+      <div id="upgrades-list"></div>
+    </div>
+
+    <!-- Skins Tab -->
+    <div id="tab-content-skins" class="tab-content">
+      <div class="shop-section-title">🫘 Bean Skins</div>
+      <div id="skins-list"></div>
+      <div class="shop-section-title" style="margin-top:16px">🎭 Characters</div>
+      <div id="chars-list"></div>
+    </div>
+
+    <!-- Stats Tab -->
+    <div id="tab-content-stats" class="tab-content">
+      <div class="shop-section-title">📊 All-Time Stats</div>
+      <div id="all-stats-list"></div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
 </body>
 </html>
