@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Bean Clicker: Fart Ascent | Ascend with Flatuence</title>
+    <title>Bean Clicker: Fart Ascent</title>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -20,118 +20,51 @@
         </div>
 
         <div id="stats-box">
-            <div class="stat-row">
-                <span class="stat-label">🫘 Coins:</span>
-                <span class="stat-value" id="stat-coins">0</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-label">💨 per click:</span>
-                <span class="stat-value" id="stat-perclick">1</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-label">🤖 per second:</span>
-                <span class="stat-value" id="stat-persecond">0.0</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-label">📏 Altitude:</span>
-                <span class="stat-value" id="stat-altitude">0</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-label">🏆 Max Alt:</span>
-                <span class="stat-value" id="stat-maxalt">0</span>
-            </div>
-            <div class="stat-row">
-                <span class="stat-label">👆 Total Clicks:</span>
-                <span class="stat-value" id="stat-clicks">0</span>
-            </div>
+            <div class="stat-row"><span class="stat-label">🫘 Beans:</span><span class="stat-value" id="stat-beans">0</span></div>
+            <div class="stat-row"><span class="stat-label">💨 per click:</span><span class="stat-value" id="stat-perclick">1</span></div>
+            <div class="stat-row"><span class="stat-label">🤖 per second:</span><span class="stat-value" id="stat-persecond">0.0</span></div>
+            <div class="stat-row"><span class="stat-label">📏 Altitude:</span><span class="stat-value" id="stat-altitude">0</span></div>
+            <div class="stat-row"><span class="stat-label">🏆 Max Alt:</span><span class="stat-value" id="stat-maxalt">0</span></div>
+            <div class="stat-row"><span class="stat-label">👆 Total Clicks:</span><span class="stat-value" id="stat-clicks">0</span></div>
         </div>
 
-        <div class="meter-label">
-            💨 Fart Power: <span id="fart-power-val">10</span>
-        </div>
-        <div class="meter-track">
-            <div class="meter-fill" id="fart-meter-fill"></div>
-        </div>
+        <div class="meter-label">💨 Fart Power: <span id="fart-power-val">10</span></div>
+        <div class="meter-track"><div class="meter-fill" id="fart-meter-fill"></div></div>
 
-        <div id="combo-display">
-            🔥 <span id="combo-multiplier">1</span>x COMBO!
-        </div>
+        <div id="combo-display">🔥 <span id="combo-multiplier">1</span>x COMBO!</div>
 
-        <div id="zone-banner">
-            <span id="zone-emoji">🌍</span>
-            <span id="zone-name">Ground Level</span>
-        </div>
+        <div id="zone-banner"><span id="zone-emoji">🌍</span><span id="zone-name">Ground Level</span></div>
 
-        <div id="news-ticker">
-            <div id="news-inner">
-                <div id="news-text">✨ Click the bean! Build your fart empire! ✨</div>
-            </div>
-        </div>
+        <div id="news-ticker"><div id="news-inner"><div id="news-text">✨ Click the bean! Build your fart empire! ✨</div></div></div>
 
-        <button class="rebirth-btn" id="rebirth-btn">
-            ⭐ REBIRTH ⭐
-            <small>+1 permanent multiplier</small>
-        </button>
-        <div id="rebirth-info">
-            Rebirths: <span id="rebirth-count">0</span> — ×<span id="rebirth-multiplier">1.0</span> bonus
-        </div>
+        <button class="rebirth-btn" id="rebirth-btn">⭐ REBIRTH ⭐<small>+1 permanent multiplier</small></button>
+        <div id="rebirth-info">Rebirths: <span id="rebirth-count">0</span> — ×<span id="rebirth-multiplier">1.0</span> bonus</div>
     </div>
 
     <!-- CENTER PANEL: Character, Bean, Visuals -->
     <div id="panel-center">
-        <div id="sky-bg">
-            <div id="sky-clouds" class="sky-layer"></div>
-            <div id="sky-stars" class="sky-layer"></div>
-        </div>
-
-        <div id="character-wrap">
-            <div id="character">🧍</div>
-            <div id="fart-cloud"></div>
-        </div>
-
-        <div id="bean-wrap">
-            <div id="bean-btn">🫘</div>
-            <div id="bean-shine"></div>
-            <div id="bean-hint">Click the bean!</div>
-        </div>
-
-        <div id="particles"></div>
-        <div id="floats"></div>
+        <div id="sky-bg"><div id="sky-clouds" class="sky-layer"></div><div id="sky-stars" class="sky-layer"></div></div>
+        <div id="character-wrap"><div id="character">🧍</div><div id="fart-cloud"></div></div>
+        <div id="bean-wrap"><div id="bean-btn">🫘</div><div id="bean-shine"></div><div id="bean-hint">Click the bean!</div></div>
+        <div id="particles"></div><div id="floats"></div>
         <div id="milestone-popup" class="hidden"></div>
     </div>
 
-    <!-- RIGHT PANEL: Shop, Upgrades, Skins, Stats -->
+    <!-- RIGHT PANEL: Shop, Upgrades, Skins, Characters, Stats -->
     <div id="panel-right">
         <div id="shop-tabs">
             <button class="tab-btn active" data-tab="upgrades">✨ Upgrades</button>
+            <button class="tab-btn" data-tab="producers">🏭 Producers</button>
             <button class="tab-btn" data-tab="skins">🎨 Skins</button>
             <button class="tab-btn" data-tab="characters">🎭 Characters</button>
             <button class="tab-btn" data-tab="stats">📊 Stats</button>
         </div>
 
-        <!-- Upgrades Tab -->
-        <div id="tab-upgrades" class="tab-content active">
-            <div class="shop-section-title">⬆️ BEAN UPGRADES</div>
-            <div id="upgrades-list"></div>
-        </div>
-
-        <!-- Skins Tab -->
-        <div id="tab-skins" class="tab-content">
-            <div class="shop-section-title">🎨 BEAN SKINS</div>
-            <div id="skins-list"></div>
-        </div>
-
-        <!-- Characters Tab -->
-        <div id="tab-characters" class="tab-content">
-            <div class="shop-section-title">🎭 PLAYER CHARACTERS</div>
-            <div id="chars-list"></div>
-        </div>
-
-        <!-- All Stats Tab -->
-        <div id="tab-stats" class="tab-content">
-            <div class="shop-section-title">📈 ALL-TIME STATS</div>
-            <div id="all-stats-container"></div>
-        </div>
+        <div id="tab-upgrades" class="tab-content active"><div class="shop-section-title">⬆️ BEAN UPGRADES</div><div id="upgrades-list"></div></div>
+        <div id="tab-producers" class="tab-content"><div class="shop-section-title">🏭 AUTO-BEANERS</div><div id="producers-list"></div></div>
+        <div id="tab-skins" class="tab-content"><div class="shop-section-title">🎨 BEAN SKINS</div><div id="skins-list"></div></div>
+        <div id="tab-characters" class="tab-content"><div class="shop-section-title">🎭 PLAYER CHARACTERS</div><div id="chars-list"></div></div>
+        <div id="tab-stats" class="tab-content"><div class="shop-section-title">📈 ALL-TIME STATS</div><div id="all-stats-container"></div></div>
     </div>
 
     <script src="game.js"></script>
