@@ -1,22 +1,20 @@
 body {
   margin: 0;
   font-family: Arial;
+  text-align: center;
+  background: linear-gradient(to bottom, #87CEEB, #ffffff);
 }
 
-.container {
-  display: flex;
-  height: 100vh;
-}
-
-.panel {
-  flex: 1;
+#bean {
+  font-size: 80px;
   padding: 20px;
-  border: 1px solid #ccc;
+  border: none;
+  background: none;
+  cursor: pointer;
 }
 
-button {
-  display: block;
-  margin: 10px 0;
+#shop button {
+  margin: 10px;
   padding: 10px;
-  font-size: 16px;
+  border-radius: 10px;
 }
