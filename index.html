@@ -7,49 +7,42 @@
 
 <body>
 
-  <div class="container">
+<div class="container">
 
-    <div class="panel">
-      <h1>Beans 🫘</h1>
-      <h2 id="beans">0</h2>
-      <button onclick="clickBean()">Click Bean</button>
-    </div>
+  <div class="panel">
+    <h1>Beans 🫘</h1>
+    <h2 id="beans">0</h2>
 
-    <div class="panel">
-      <h1>Gas 💨</h1>
-      <h2 id="gas">0</h2>
-      <p>Gas is generated automatically</p>
-    </div>
+    <button onclick="clickBean()">Click Bean</button>
 
-  </div>
+    <hr>
 
-  <script src="game.js"></script>
-</body>
-</html><!DOCTYPE html>
-<html>
-<head>
-  <title>Bean Clicker</title>
-  <link rel="stylesheet" href="style.css">
-</head>
+    <button onclick="buyClickPower()">
+      +1 Click Power (Cost: <span id="clickCost">10</span>)
+    </button>
 
-<body>
+    <button onclick="buyAutoBean()">
+      Auto Beans (+1/sec) (Cost: <span id="autoCost">25</span>)
+    </button>
 
-  <div class="container">
+    <hr>
 
-    <div class="panel">
-      <h1>Beans 🫘</h1>
-      <h2 id="beans">0</h2>
-      <button onclick="clickBean()">Click Bean</button>
-    </div>
-
-    <div class="panel">
-      <h1>Gas 💨</h1>
-      <h2 id="gas">0</h2>
-      <p>Gas is generated automatically</p>
-    </div>
+    <button onclick="prestige()">
+      PRESTIGE (Reset for Multiplier)
+    </button>
 
   </div>
 
-  <script src="game.js"></script>
+  <div class="panel">
+    <h1>Gas 💨</h1>
+    <h2 id="gas">0</h2>
+
+    <p id="mult">Multiplier: 1x</p>
+    <p id="status"></p>
+  </div>
+
+</div>
+
+<script src="game.js"></script>
 </body>
 </html>
