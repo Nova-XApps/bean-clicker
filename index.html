@@ -3,11 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Bean Ascension • Cookie Clicker style</title>
+    <title>Bean Ascension – Cookie Clicker style</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
 <div id="gameWrapper">
@@ -28,7 +25,7 @@
         </div>
     </div>
 
-    <!-- Right side: upgrades & live players -->
+    <!-- Right side: upgrades & automation -->
     <div id="rightColumn">
         <div id="upgradesPanel">
             <h3>🔧 UPGRADES & AUTO</h3>
@@ -57,11 +54,9 @@
                 ⚙️ <span id="prodPerSec">0</span> gas/sec
             </div>
         </div>
-
-        <div id="livePlayersPanel">
-            <div class="liveItem">👥 <span id="onlineCount">0</span> playing right now</div>
-            <div class="liveItem">🌟 <span id="totalCount">0</span> total bean masters (all time)</div>
-            <div class="liveItem">🔄 real‑time updates</div>
+        <div id="infoPanel">
+            <div class="infoItem">🌟 reach 100 gas to travel</div>
+            <div class="infoItem">💾 game saves automatically</div>
         </div>
     </div>
 </div>
