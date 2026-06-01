@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Bean Empire · Infinite Idle Clicker</title>
+    <title>Bean Empire · Prestige · Pets · Bosses</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="game-container">
-        <!-- Left Column: Bean & Core Stats -->
+        <!-- LEFT COLUMN: MAIN GAMEPLAY -->
         <div class="main-panel">
             <div class="bean-card">
                 <div class="bean" id="bean">🫘</div>
@@ -25,35 +25,75 @@
                 <div class="stat"><span class="label">🐾 Pet Bonus</span><span id="petBonusValue" class="value">0%</span></div>
             </div>
             <div class="zone-progress">
-                <div class="progress-label">Next zone at +100 gas</div>
+                <div class="progress-label">⬆️ Next zone at +100 gas</div>
                 <div class="progress-bar"><div id="zoneFill" class="fill"></div></div>
             </div>
             <div id="eventLog" class="event-log">✨ Events will appear here</div>
             <div id="threatPanel" class="threat-panel"></div>
         </div>
 
-        <!-- Right Column: Upgrades & Actions -->
+        <!-- RIGHT COLUMN: UPGRADES + NEW SYSTEMS -->
         <div class="side-panel">
             <div class="upgrade-group">
-                <h3>🔧 UPGRADES</h3>
-                <div class="upgrade" id="upgradeClick"><span>💨 Stronger Farts</span><span class="cost" id="clickCost">50</span><div class="desc">+1 click power (cost scales)</div></div>
+                <h3>🔧 CORE UPGRADES</h3>
+                <div class="upgrade" id="upgradeClick"><span>💨 Stronger Farts</span><span class="cost" id="clickCost">50</span><div class="desc">+1 click power (scales)</div></div>
                 <div class="upgrade" id="upgradeMega"><span>✨ Mega Burst</span><span class="cost" id="megaCost">200</span><div class="desc">+5 click power</div></div>
-                <div class="upgrade" id="buyBot"><span>🤖 Auto Bot</span><span class="cost" id="botCost">120</span><div class="desc">+1 gas per second</div></div>
-                <div class="upgrade" id="upgradeBot"><span>⚡ Turbo Nozzle</span><span class="cost" id="turboCost">300</span><div class="desc">+1 gas per bot/sec</div></div>
+                <div class="upgrade" id="buyBot"><span>🤖 Auto Bot</span><span class="cost" id="botCost">120</span><div class="desc">+1 gas/sec</div></div>
+                <div class="upgrade" id="upgradeBot"><span>⚡ Turbo Nozzle</span><span class="cost" id="turboCost">300</span><div class="desc">+1 per bot/sec</div></div>
             </div>
+
             <div class="upgrade-group">
-                <h3>🌀 SIMULATION LAYERS</h3>
-                <div class="upgrade" id="prestigeBtn"><span>🌊 Enter New Layer</span><span class="cost" id="layerCost">Reach The End...</span><div class="desc">Reset for permanent global multiplier</div></div>
-                <div class="upgrade" id="fractureShop"><span>⚡ Fracture Upgrade</span><span class="cost" id="fractureCost">10 FP</span><div class="desc">+50% global production</div></div>
+                <h3>🌀 PRESTIGE (Quantum Reset)</h3>
+                <div class="upgrade" id="prestigeBtn"><span>🌊 Quantum Leap</span><span class="cost" id="layerCost">Reach The End...</span><div class="desc">Earn Fracture Points &amp; unlock Skill Tree</div></div>
+                <div class="upgrade" id="skillTreeBtn"><span>🌳 Prestige Skill Tree</span><span class="cost" id="skillPointDisplay">0 FP</span><div class="desc">Spend Fracture Points for permanent bonuses</div></div>
             </div>
+
             <div class="upgrade-group">
-                <h3>🐾 COLLECTIBLES</h3>
-                <div class="upgrade" id="petBtn"><span>🌱 Summon Pet</span><span class="cost">100 gas</span><div class="desc">+20% production</div></div>
+                <h3>🐾 PETS & CRATES</h3>
+                <div class="upgrade" id="openCrateBtn"><span>📦 Open Pet Crate</span><span class="cost" id="crateCost">100 gas</span><div class="desc">Random pet (rarity scales with zone)</div></div>
+                <div class="upgrade" id="inventoryBtn"><span>🎒 Inventory / Equip</span><span class="cost" style="color:#aaa;">—</span><div class="desc">Manage pets & loadouts</div></div>
                 <div id="petDisplay" class="pet-status">No pet equipped</div>
             </div>
-            <div class="info-text">💾 Game auto-saves every 30 seconds</div>
+            <div class="info-text">💾 Auto-saves every 30s | Bosses appear after zone 20</div>
         </div>
     </div>
-    <script src="script.js"></script>
+
+    <!-- MODAL FOR SKILL TREE -->
+    <div id="skillTreeModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal" id="closeSkillTree">&times;</span>
+            <h2>🌳 Prestige Skill Tree</h2>
+            <p>Fracture Points: <strong id="modalFracture">0</strong></p>
+            <div class="skill-tree-grid">
+                <div class="skill-card" data-skill="prod1"><span>🌾 Production I</span><span class="cost">5 FP</span><div>+10% global production</div><button class="buySkill">Buy</button></div>
+                <div class="skill-card" data-skill="prod2"><span>⚙️ Production II</span><span class="cost">15 FP</span><div>+25% global production</div><button class="buySkill">Buy</button></div>
+                <div class="skill-card" data-skill="autoClick"><span>🖱️ Auto-Clicker</span><span class="cost">20 FP</span><div>1 click/sec (stacks)</div><button class="buySkill">Buy</button></div>
+                <div class="skill-card" data-skill="bossKiller"><span>👑 Boss Slayer</span><span class="cost">10 FP</span><div>Bosses spawn 30% less often</div><button class="buySkill">Buy</button></div>
+                <div class="skill-card" data-skill="petLover"><span>🐾 Pet Synergy</span><span class="cost">12 FP</span><div>Pet bonuses +50%</div><button class="buySkill">Buy</button></div>
+                <div class="skill-card" data-skill="chaosLuck"><span>🎲 Chaos Luck</span><span class="cost">18 FP</span><div>Random event rewards doubled</div><button class="buySkill">Buy</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL FOR INVENTORY -->
+    <div id="inventoryModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal" id="closeInventory">&times;</span>
+            <h2>🎒 Pet Inventory</h2>
+            <div id="petInventoryList" class="inventory-grid"></div>
+            <div class="loadout-buttons">
+                <button id="autoEquipBest">⚡ Auto-Equip Best</button>
+                <button id="clearEquip">🗑️ Clear Equipped</button>
+            </div>
+            <p><strong>Equipped pets:</strong> <span id="equippedList">None</span></p>
+            <p><em>Max 3 pets equipped. Bonuses stack.</em></p>
+        </div>
+    </div>
+
+    <div id="cutsceneOverlay" class="cutscene hidden">
+        <div id="cutsceneText"></div>
+    </div>
+
+    <script src="game.js"></script>
 </body>
 </html>
