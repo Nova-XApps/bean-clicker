@@ -1,3 +1,4 @@
+
 // ---------- ZONES ----------
 const baseZones = [
     "Seed Patch","Bean Field","Forest Floor","Forest Canopy","Backyard",
@@ -37,7 +38,7 @@ let doubleChance = 0;
 let autoClickActive = false;
 let autoClickInterval = null;
 
-// Upgrade costs (scalable)
+// Upgrade data (scalable)
 let upgradeData = [
     { id: "click", name: "💨 Stronger Farts", baseCost: 50, cost: 50, effect: () => { clickPower++; }, desc: "+1 click power", multiplier: 1.2 },
     { id: "mega", name: "✨ Mega Burst", baseCost: 200, cost: 200, effect: () => { clickPower += 5; }, desc: "+5 click power", multiplier: 1.25 },
@@ -56,7 +57,7 @@ const petRarities = ["Common","Rare","Epic","Legendary","Ultimate"];
 const petBonuses = [0.005, 0.02, 0.08, 0.15, 0.3];
 const petNames = ["Sprout","Beanling","Cosmic Pup","Void Bunny","Elder Bean","Golden Sprout","Nebula Cat"];
 let ownedPets = [];
-let equippedPets = [];
+let petBonusMult = 1;
 
 // Leaderboard
 let leaderboard = [];
@@ -75,7 +76,7 @@ const eventDiv = document.getElementById("eventMessage");
 const bossAlert = document.getElementById("bossAlert");
 const comboDisplay = document.getElementById("comboDisplay");
 
-// Helper: required gas for current zone
+// Helper functions
 function getRequiredGasForZone() { return Math.min(100 + zoneIndex * 8, 500); }
 
 function updateUI() {
@@ -105,8 +106,9 @@ function updateZone() {
     } else updateUI();
 }
 
+// Main addGas (includes pet bonus)
 function addGas(amount) {
-    let gain = amount * globalMult;
+    let gain = amount * globalMult * petBonusMult;
     if (Math.random() < doubleChance) gain *= 2;
     gas += gain;
     updateZone();
@@ -120,19 +122,24 @@ function incrementCombo() {
     comboDisplay.innerText = `⚡ Combo: ${combo}`;
     comboTimeout = setTimeout(() => { combo = 0; comboDisplay.innerText = "⚡ Combo: 0"; }, 3000);
 }
+
 function clickBean(e) {
     let gain = clickPower;
     if (combo > 0) gain = Math.floor(gain * (1 + combo * 0.03));
     if (Math.random() < critChance) gain = Math.floor(gain * 2.5);
     addGas(gain);
     incrementCombo();
-    e.currentTarget.style.transform = "scale(0.92)";
-    setTimeout(() => { if(e.currentTarget) e.currentTarget.style.transform = ""; }, 80);
+    // visual squash
+    const beanEl = document.getElementById("bean");
+    beanEl.style.transform = "scale(0.92)";
+    setTimeout(() => { beanEl.style.transform = ""; }, 80);
+    console.log("Bean clicked!"); // debug
 }
 
 // Upgrade rendering (paginated)
 function renderUpgrades() {
     const container = document.getElementById("upgradeList");
+    if (!container) return;
     const start = (currentPage-1)*pageSize;
     const pageUpgrades = upgradeData.slice(start, start+pageSize);
     container.innerHTML = pageUpgrades.map(up => `
@@ -223,16 +230,17 @@ function defeatBoss() {
 }
 setInterval(trySpawnBoss, 90000);
 window.defeatBoss = defeatBoss;
+bossAlert.onclick = defeatBoss;
 
 // Pets & Crates
 function getRandomPet() {
     let rarityRoll = Math.random();
     let rarityIdx = 0;
-    if (rarityRoll < 0.5) rarityIdx = 0;      // Common 50%
-    else if (rarityRoll < 0.75) rarityIdx = 1; // Rare 25%
-    else if (rarityRoll < 0.9) rarityIdx = 2;  // Epic 15%
-    else if (rarityRoll < 0.98) rarityIdx = 3; // Legendary 8%
-    else rarityIdx = 4;                        // Ultimate 2%
+    if (rarityRoll < 0.5) rarityIdx = 0;
+    else if (rarityRoll < 0.75) rarityIdx = 1;
+    else if (rarityRoll < 0.9) rarityIdx = 2;
+    else if (rarityRoll < 0.98) rarityIdx = 3;
+    else rarityIdx = 4;
     let name = petNames[Math.floor(Math.random() * petNames.length)] + ` (${petRarities[rarityIdx]})`;
     let bonus = petBonuses[rarityIdx];
     return { id: Date.now() + Math.random(), name, bonus, rarity: rarityIdx, equipped: false };
@@ -249,6 +257,7 @@ function openCrate() {
 }
 function renderPetInventory() {
     const container = document.getElementById("petInventory");
+    if (!container) return;
     container.innerHTML = ownedPets.map((p, idx) => `
         <div class="pet-card ${p.equipped ? 'equipped' : ''}" onclick="toggleEquip(${idx})">
             <strong>${p.name}</strong><br>
@@ -281,20 +290,8 @@ function autoEquipBest() {
 }
 function updatePetBonus() {
     let totalBonus = ownedPets.filter(p=>p.equipped).reduce((sum,p)=>sum + p.bonus, 0);
-    // applied in addGas via globalMult? We'll integrate: store petBonus separately
-    window.petBonusMult = 1 + totalBonus;
+    petBonusMult = 1 + totalBonus;
 }
-// override addGas to use pet bonus
-const origAddGas = addGas;
-addGas = function(amount) {
-    let petMult = window.petBonusMult || 1;
-    let gain = amount * globalMult * petMult;
-    if (Math.random() < doubleChance) gain *= 2;
-    gas += gain;
-    updateZone();
-    updateUI();
-};
-window.addGas = addGas;
 
 // Leaderboard
 function loadLeaderboard() {
@@ -334,8 +331,7 @@ function playCutscene() {
 // Save / Load
 function saveGame() {
     let save = { gas, clickPower, bots, botEfficiency, zoneIndex, prestigeLevel, globalMult, fracturePoints,
-                 upgradeCosts: upgradeData.map(u=>u.cost), ownedPets, equippedPets: ownedPets.filter(p=>p.equipped).map(p=>p.id),
-                 critChance, doubleChance, autoClickActive };
+                 upgradeCosts: upgradeData.map(u=>u.cost), ownedPets, critChance, doubleChance, autoClickActive };
     localStorage.setItem("beanEmpireSave", JSON.stringify(save));
 }
 function loadGame() {
@@ -364,26 +360,50 @@ function switchTab(tabId) {
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
 }
-document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.onclick = () => switchTab(btn.dataset.tab);
+
+// Flash effect
+function flashEffect(type, message, isError = false) {
+    let toast = document.createElement("div");
+    toast.className = "toast";
+    toast.innerText = message;
+    toast.style.background = isError ? "#a12222cc" : "#2a5a2acc";
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2500);
+}
+
+// Wait for DOM to be fully loaded before binding events
+document.addEventListener("DOMContentLoaded", () => {
+    // Bind click handler to bean
+    const beanElement = document.getElementById("bean");
+    if (beanElement) {
+        beanElement.addEventListener("click", clickBean);
+        console.log("Bean click listener attached!");
+    } else {
+        console.error("Bean element not found!");
+    }
+
+    // Bind other UI buttons
+    document.getElementById("prestigeBtn").onclick = performPrestige;
+    document.getElementById("openCrateBtn").onclick = openCrate;
+    document.getElementById("autoEquipBtn").onclick = autoEquipBest;
+    document.getElementById("submitScoreBtn").onclick = submitLeaderboardScore;
+    document.getElementById("prevPageBtn").onclick = prevPage;
+    document.getElementById("nextPageBtn").onclick = nextPage;
+
+    // Tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.onclick = () => switchTab(btn.dataset.tab);
+    });
+
+    // Load data and start loops
+    loadGame();
+    loadLeaderboard();
+    renderUpgrades();
+    renderPetInventory();
+    updateUI();
+    updatePetBonus();
+
+    setInterval(() => { if (!document.hidden) triggerRandomEvent(); }, 75000);
+    setInterval(() => { if (!document.hidden) addGas(bots * botEfficiency); }, 1000);
+    flashEffect("welcome", "Bean Empire Awakened! Click the bean.", false);
 });
-
-// Event binding
-document.getElementById("bean").addEventListener("click", clickBean);
-document.getElementById("prestigeBtn").onclick = performPrestige;
-document.getElementById("openCrateBtn").onclick = openCrate;
-document.getElementById("autoEquipBtn").onclick = autoEquipBest;
-document.getElementById("submitScoreBtn").onclick = submitLeaderboardScore;
-document.getElementById("prevPageBtn").onclick = prevPage;
-document.getElementById("nextPageBtn").onclick = nextPage;
-
-// Startup
-loadGame();
-loadLeaderboard();
-renderUpgrades();
-renderPetInventory();
-updateUI();
-window.petBonusMult = 1;
-setInterval(() => { if (!document.hidden) triggerRandomEvent(); }, 75000);
-setInterval(() => { if (!document.hidden) addGas(bots * botEfficiency); }, 1000);
-flashEffect("welcome", "Bean Empire Awakened! Click the bean.", false);
