@@ -1,67 +1,72 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Bean Empire · Leaderboard & Fast Progression</title>
+    <title>Bean Empire · Scalable Worlds · Leaderboard</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="game-wrapper">
-        <!-- Left: Main Game -->
-        <div class="main-column">
-            <div class="bean-area">
+    <div class="container">
+        <!-- Left: Core Game -->
+        <div class="game-panel">
+            <div class="bean-card">
                 <div class="bean" id="bean">🫘</div>
-                <div class="click-hint">🔥 Click the Bean! 🔥</div>
+                <div class="click-hint">🔥 Click the Bean 🔥</div>
                 <div id="comboDisplay" class="combo">⚡ Combo: 0</div>
             </div>
             <div class="stats-grid">
-                <div class="stat"><span>💨 Gas</span><span id="gasValue">0</span></div>
-                <div class="stat"><span>⚡ Click Power</span><span id="powerValue">1</span></div>
-                <div class="stat"><span>🌍 World</span><span id="worldName">Seed Patch</span></div>
-                <div class="stat"><span>🤖 Bots</span><span id="botCount">0</span></div>
-                <div class="stat"><span>⚙️ Gas/sec</span><span id="prodValue">0</span></div>
-                <div class="stat"><span>🌀 Fracture</span><span id="fracturePoints">0</span></div>
-                <div class="stat"><span>🧬 Prestige Lv</span><span id="layerNum">0</span></div>
+                <div class="stat"><label>💨 Gas</label><span id="gasValue">0</span></div>
+                <div class="stat"><label>⚡ Click Power</label><span id="powerValue">1</span></div>
+                <div class="stat"><label>🌍 World</label><span id="worldName">Seed Patch</span></div>
+                <div class="stat"><label>🤖 Bots</label><span id="botCount">0</span></div>
+                <div class="stat"><label>⚙️ Gas/sec</label><span id="prodValue">0</span></div>
+                <div class="stat"><label>🌀 Fracture</label><span id="fracturePoints">0</span></div>
+                <div class="stat"><label>🧬 Prestige</label><span id="prestigeLv">0</span></div>
             </div>
-            <div class="zone-bar">
-                <div class="zone-progress-bg"><div id="zoneFill" class="zone-fill"></div></div>
-                <div class="next-goal">➡️ Next world: <span id="nextZoneGas">100</span> gas</div>
+            <div class="zone-area">
+                <div class="progress-label">Next world: <span id="nextZoneGas">100</span> gas</div>
+                <div class="progress-bar"><div id="zoneFill" class="fill"></div></div>
             </div>
-            <div id="eventMessage" class="event-toast">✨ Events pop up here ✨</div>
-            <div id="bossAlert" class="boss-alert hidden"></div>
+            <div id="eventMessage" class="event-toast">✨ Events appear here ✨</div>
+            <div id="bossAlert" class="boss-alert hidden" onclick="defeatBoss()">⚠️ BOSS ACTIVE ⚠️</div>
         </div>
 
         <!-- Right: Upgrades & Leaderboard -->
-        <div class="right-column">
-            <div class="upgrade-panel">
-                <h3>⚡ FAST UPGRADES</h3>
-                <div class="upgrade" id="upgradeClick"><span>💨 Stronger Farts</span><span class="cost" id="clickCost">50</span><div>+1 click power</div></div>
-                <div class="upgrade" id="upgradeMega"><span>✨ Mega Burst</span><span class="cost" id="megaCost">200</span><div>+5 click power</div></div>
-                <div class="upgrade" id="buyBot"><span>🤖 Auto Bot</span><span class="cost" id="botCost">120</span><div>+1 gas/sec</div></div>
-                <div class="upgrade" id="upgradeBot"><span>⚡ Turbo Nozzle</span><span class="cost" id="turboCost">300</span><div>+1 per bot/sec</div></div>
-                <div class="upgrade" id="prestigeBtn"><span>🌀 Quantum Leap</span><span class="cost" id="prestigeReq">Reach The End...</span><div>Reset for Fracture &amp; permanent boost</div></div>
+        <div class="right-panel">
+            <div class="upgrade-section">
+                <h3>⚡ UPGRADES</h3>
+                <div class="upgrade-grid">
+                    <div class="upgrade" id="upgradeClick"><span>💨 Stronger Farts</span><span class="cost" id="clickCost">50</span><div class="desc">+1 click power</div></div>
+                    <div class="upgrade" id="upgradeMega"><span>✨ Mega Burst</span><span class="cost" id="megaCost">200</span><div class="desc">+5 click power</div></div>
+                    <div class="upgrade" id="buyBot"><span>🤖 Auto Bot</span><span class="cost" id="botCost">120</span><div class="desc">+1 gas/sec</div></div>
+                    <div class="upgrade" id="upgradeBot"><span>⚡ Turbo Nozzle</span><span class="cost" id="turboCost">300</span><div class="desc">+1 per bot/sec</div></div>
+                    <div class="upgrade" id="upgradeCrit"><span>🎯 Critical Eye</span><span class="cost" id="critCost">500</span><div class="desc">+5% crit chance (max 50%)</div></div>
+                    <div class="upgrade" id="upgradeDouble"><span>💎 Double Tap</span><span class="cost" id="doubleCost">800</span><div class="desc">+10% chance for double gas</div></div>
+                    <div class="upgrade" id="upgradeAutoClick"><span>🖱️ Auto-Clicker</span><span class="cost" id="autoClickCost">1000</span><div class="desc">1 free click/sec</div></div>
+                </div>
+                <div class="prestige-row">
+                    <div class="upgrade" id="prestigeBtn"><span>🌀 Quantum Leap</span><span class="cost" id="prestigeReq">Reach last world</span><div class="desc">Reset for Fracture & permanent boost</div></div>
+                </div>
             </div>
 
-            <div class="leaderboard-panel">
+            <div class="leaderboard-section">
                 <h3>🏆 GLOBAL LEADERBOARD</h3>
-                <div class="leaderboard-controls">
+                <div class="leaderboard-input">
                     <input type="text" id="playerName" placeholder="Your name" maxlength="12">
                     <button id="submitScoreBtn">Submit Score</button>
                 </div>
-                <div id="leaderboardList" class="leaderboard-list">
-                    <div class="leaderboard-entry">Loading...</div>
-                </div>
-                <div class="leaderboard-note">* Based on Prestige Score (Fracture + Prestige level)</div>
+                <div id="leaderboardList" class="leaderboard-list">Loading...</div>
+                <div class="leaderboard-note">* Score = Fracture + Prestige×10</div>
             </div>
         </div>
     </div>
 
-    <!-- Cutscene Overlay -->
     <div id="cutsceneOverlay" class="cutscene hidden">
         <div id="cutsceneText" class="cutscene-text"></div>
     </div>
 
-    <script src="game.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
