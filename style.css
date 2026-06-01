@@ -1,220 +1,234 @@
 * {
     user-select: none;
     box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 body {
-    margin: 0;
+    background: radial-gradient(circle at 10% 20%, #0c0f1c, #03050a);
+    font-family: 'Segoe UI', 'Courier New', monospace;
+    color: #eaeef2;
     min-height: 100vh;
-    font-family: 'Courier New', 'Trebuchet MS', monospace;
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 20px;
-    transition: background-color 0.5s ease;
 }
 
-/* Dynamic zone background (overridden by JS) */
-body {
-    background: #2b2419;
-}
-
-#gameWrapper {
-    display: flex;
-    gap: 30px;
-    flex-wrap: wrap;
-    justify-content: center;
-    max-width: 1100px;
+.game-container {
+    max-width: 1300px;
     width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    background: rgba(12, 20, 28, 0.6);
+    backdrop-filter: blur(10px);
+    border-radius: 48px;
+    padding: 24px;
+    border: 1px solid rgba(210, 180, 140, 0.4);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
 }
 
-/* LEFT COLUMN */
-#leftColumn {
+/* panels */
+.main-panel {
     flex: 2;
     min-width: 280px;
-    background: #f4e6cf;
-    border-radius: 40px;
-    padding: 25px;
-    box-shadow: inset 0 1px 5px #fff5e6, 0 8px 18px rgba(0,0,0,0.3);
-    border: 2px solid #c9a87b;
-    transition: background 0.3s;
 }
-
-#cookieArea {
-    text-align: center;
-    margin-bottom: 20px;
-}
-.bean {
-    font-size: 180px;
-    cursor: pointer;
-    display: inline-block;
-    transition: transform 0.05s linear, filter 0.2s;
-    filter: drop-shadow(0 12px 12px rgba(0,0,0,0.25));
-}
-.bean:active {
-    transform: scale(0.92);
-}
-#clickHint {
-    font-size: 0.9rem;
-    color: #8b6946;
-    margin-top: 5px;
-}
-
-#statsBar {
-    background: #e7d5b5;
-    border-radius: 30px;
-    padding: 12px 18px;
-    margin: 20px 0;
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
-    font-weight: bold;
-    border: 1px solid #bb8f63;
-}
-#gasDisplay {
-    background: #2e241a;
-    color: #ffcd7e;
-    padding: 6px 16px;
-    border-radius: 40px;
-    font-size: 1.8rem;
-}
-#powerDisplay, #zoneDisplay {
-    background: #f2e2c6;
-    padding: 6px 16px;
-    border-radius: 40px;
-    color: #5a3e1b;
-}
-
-#zoneProgress {
-    margin-top: 15px;
-}
-.progressLabel {
-    font-size: 0.75rem;
-    color: #7a5a3a;
-}
-.progressBar {
-    background: #c9ab89;
-    border-radius: 20px;
-    height: 16px;
-    margin-top: 4px;
-    overflow: hidden;
-}
-#progressFill {
-    width: 0%;
-    height: 100%;
-    background: #f5bc70;
-    transition: width 0.1s;
-}
-
-.zone-message {
-    margin-top: 12px;
-    text-align: center;
-    font-weight: bold;
-    background: #e9c891;
-    border-radius: 30px;
-    padding: 6px;
-    animation: fadeOut 2s forwards;
-}
-@keyframes fadeOut {
-    0% { opacity: 1; }
-    70% { opacity: 1; }
-    100% { opacity: 0; display: none; }
-}
-.hidden {
-    display: none;
-}
-
-/* RIGHT COLUMN */
-#rightColumn {
+.side-panel {
     flex: 1.2;
     min-width: 260px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 24px;
 }
 
-#upgradesPanel {
-    background: #e9dbbc;
-    border-radius: 28px;
-    padding: 16px;
-    border: 2px solid #bb8f63;
-}
-#upgradesPanel h3 {
-    margin: 0 0 12px 0;
+/* bean */
+.bean-card {
     text-align: center;
-    color: #4a2e14;
+    background: #1a1f2a;
+    border-radius: 60px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #c9a87b;
+    box-shadow: inset 0 0 8px #ffdd9933, 0 12px 20px #00000055;
+}
+.bean {
+    font-size: 160px;
+    cursor: pointer;
+    display: inline-block;
+    transition: transform 0.05s linear;
+    filter: drop-shadow(0 12px 12px #000000aa);
+}
+.bean:active {
+    transform: scale(0.92);
+}
+.click-hint {
+    font-size: 0.9rem;
+    opacity: 0.7;
+    margin-top: 8px;
+}
+
+/* stats */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 12px;
+    background: #0f131ecc;
+    border-radius: 40px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+.stat {
+    background: #050a12;
+    border-radius: 32px;
+    padding: 8px 12px;
+    text-align: center;
+}
+.stat .label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #b9cfd4;
+}
+.stat .value {
+    font-size: 1.6rem;
+    font-weight: bold;
+    color: #ffe0a3;
+    line-height: 1.2;
+}
+
+/* progress */
+.zone-progress {
+    margin: 15px 0;
+}
+.progress-label {
+    font-size: 0.75rem;
+    margin-bottom: 5px;
+    color: #ccb38c;
+}
+.progress-bar {
+    background: #1e2a2a;
+    border-radius: 30px;
+    height: 16px;
+    overflow: hidden;
+}
+.fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #f5bc70, #ffdd77);
+    transition: width 0.2s;
+}
+
+/* event & threats */
+.event-log {
+    background: #000000aa;
+    border-radius: 28px;
+    padding: 12px;
+    font-size: 0.85rem;
+    text-align: center;
+    margin: 12px 0;
+}
+.threat-panel {
+    background: #1c0f12aa;
+    border-radius: 28px;
+    padding: 8px;
+    font-size: 0.8rem;
+}
+.threat-item {
+    background: #4a1e2e;
+    border-radius: 24px;
+    padding: 6px 12px;
+    margin: 6px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.threat-item button {
+    background: #ffaa55;
+    border: none;
+    border-radius: 40px;
+    padding: 4px 12px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* upgrades */
+.upgrade-group {
+    background: #11161fdd;
+    border-radius: 32px;
+    padding: 16px;
+    border: 1px solid #6a5a3e;
+}
+.upgrade-group h3 {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+    border-left: 4px solid #f5bc70;
+    padding-left: 12px;
 }
 .upgrade {
-    background: #fcf3e0;
+    background: #1e242f;
     margin: 8px 0;
-    padding: 10px 12px;
-    border-radius: 20px;
+    padding: 12px;
+    border-radius: 30px;
     cursor: pointer;
-    transition: 0.05s linear;
-    border: 1px solid #cdaf87;
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
     align-items: baseline;
+    transition: 0.05s linear;
+    border: 1px solid #6a5a3e;
 }
 .upgrade:hover {
-    background: #fff1df;
+    background: #2d3545;
     transform: scale(0.98);
 }
-.upgrade .name {
-    font-weight: bold;
-    font-size: 0.9rem;
-}
 .upgrade .cost {
-    color: #b1622c;
+    color: #ffbc6e;
     font-weight: bold;
+    margin-left: 10px;
 }
 .upgrade .desc {
     width: 100%;
     font-size: 0.7rem;
-    color: #7a5a3a;
-    margin-top: 4px;
+    opacity: 0.7;
+    margin-top: 6px;
 }
-#autoStats {
-    margin-top: 15px;
+.pet-status {
+    margin-top: 8px;
     text-align: center;
-    background: #dac292;
-    border-radius: 30px;
-    padding: 8px;
-    font-weight: bold;
-}
-
-#infoPanel {
-    background: #2e241a;
+    font-size: 0.8rem;
+    background: #00000066;
     border-radius: 28px;
-    padding: 14px;
-    text-align: center;
-    color: #ffda99;
-    border: 1px solid #ab8a5e;
+    padding: 6px;
 }
-.infoItem {
-    margin: 6px 0;
-    font-weight: bold;
+.info-text {
+    font-size: 0.7rem;
+    text-align: center;
+    opacity: 0.6;
 }
 
-.cutscene {
+/* toast notif */
+.toast {
     position: fixed;
-    inset: 0;
+    bottom: 20px;
+    left: 20px;
     background: #000000dd;
-    backdrop-filter: blur(12px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    font-size: 2rem;
-    color: #ffefb9;
-    text-align: center;
-    padding: 2rem;
+    backdrop-filter: blur(8px);
+    padding: 8px 20px;
+    border-radius: 40px;
     font-weight: bold;
+    z-index: 2000;
+    animation: fadeOut 3s forwards;
+}
+@keyframes fadeOut {
+    0% { opacity: 1; transform: translateY(0);}
+    80% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-20px); display: none; }
 }
 
 @media (max-width: 750px) {
-    .bean { font-size: 120px; }
-    #gasDisplay { font-size: 1.2rem; }
+    .bean { font-size: 100px; }
+    .stat .value { font-size: 1.2rem; }
+    .game-container { padding: 16px; gap: 16px; }
 }
