@@ -3,84 +3,528 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Bean Empire · Pets · Leaderboard · Scalable Upgrades</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Bean Empire – Fully Working</title>
+    <style>
+        /* ========== STYLES ========== */
+        * { user-select: none; box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: radial-gradient(circle at 20% 30%, #0a0f1a, #020408);
+            font-family: 'Segoe UI', 'Courier New', monospace;
+            color: #f0f3fa;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .game-container {
+            max-width: 1400px;
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            background: rgba(10, 15, 25, 0.7);
+            backdrop-filter: blur(12px);
+            border-radius: 48px;
+            padding: 24px;
+            border: 1px solid #ffcf7a60;
+        }
+        .left-panel { flex: 1.5; min-width: 280px; }
+        .right-panel { flex: 1; min-width: 320px; background: #0b101acc; border-radius: 40px; padding: 16px; }
+        .bean-card { text-align: center; background: #1a1f2c; border-radius: 60px; padding: 20px; margin-bottom: 20px; border: 1px solid #c9a87b; }
+        .bean { font-size: 160px; cursor: pointer; display: inline-block; transition: transform 0.05s; filter: drop-shadow(0 12px 12px black); }
+        .bean:active { transform: scale(0.92); }
+        .click-hint { font-size: 0.9rem; opacity: 0.8; margin-top: 8px; }
+        .combo { font-size: 1.2rem; font-weight: bold; color: #ffaa55; margin-top: 10px; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 12px;
+            background: #0b101acc;
+            border-radius: 40px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .stat { background: #04070e; border-radius: 32px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: baseline; }
+        .stat label { font-size: 0.7rem; color: #ccb38c; }
+        .stat span { font-size: 1.4rem; color: #ffde9e; font-weight: bold; }
+        .zone-area { background: #0f1420aa; border-radius: 40px; padding: 12px; margin-bottom: 20px; }
+        .progress-label { font-size: 0.8rem; margin-bottom: 6px; color: #ffdd99; }
+        .progress-bar { background: #1e2a2a; border-radius: 30px; height: 18px; overflow: hidden; }
+        .fill { width: 0%; height: 100%; background: linear-gradient(90deg, #f5bc70, #ffdd77); transition: width 0.2s; }
+        .event-toast { background: #000000aa; border-radius: 30px; padding: 10px; text-align: center; margin: 10px 0; }
+        .boss-alert { background: #8b1a2c; border-radius: 30px; padding: 8px; text-align: center; cursor: pointer; }
+        .hidden { display: none; }
+        .tab-bar { display: flex; gap: 8px; margin-bottom: 20px; }
+        .tab-btn { background: #1e242f; border: none; padding: 8px 16px; border-radius: 40px; color: white; cursor: pointer; flex: 1; }
+        .tab-btn.active { background: #f5bc70; color: #1a1f2c; font-weight: bold; }
+        .tab-content { display: block; }
+        .tab-content.hidden { display: none; }
+        .upgrade-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .upgrade-header button { background: #2a2f3a; border: none; padding: 6px 12px; border-radius: 30px; cursor: pointer; }
+        .upgrade-grid { display: flex; flex-direction: column; gap: 10px; max-height: 380px; overflow-y: auto; }
+        .upgrade { background: #1e242f; padding: 10px; border-radius: 30px; cursor: pointer; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; }
+        .upgrade:hover { background: #2d3545; transform: scale(0.98); }
+        .upgrade .cost { color: #ffbc6e; font-weight: bold; margin-left: 8px; }
+        .upgrade .desc { width: 100%; font-size: 0.7rem; opacity: 0.7; margin-top: 4px; }
+        .prestige-row { margin-top: 15px; }
+        .crate-area { text-align: center; margin-bottom: 20px; }
+        .crate-btn { background: #f5bc70; border: none; padding: 10px 20px; border-radius: 40px; font-weight: bold; cursor: pointer; }
+        .pet-inventory { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; max-height: 250px; overflow-y: auto; margin: 10px 0; }
+        .pet-card { background: #1a202c; border-radius: 24px; padding: 8px; text-align: center; cursor: pointer; }
+        .pet-card.equipped { border: 2px solid gold; }
+        .small-btn { background: #2a2f3a; border: none; padding: 6px 12px; border-radius: 30px; cursor: pointer; margin-top: 8px; }
+        .leaderboard-input { display: flex; gap: 8px; margin-bottom: 16px; }
+        #playerName { flex: 1; background: #2a2f3a; border: none; border-radius: 40px; padding: 8px 12px; color: white; }
+        #submitScoreBtn { background: #f5bc70; border: none; border-radius: 40px; padding: 8px 16px; cursor: pointer; }
+        .leaderboard-list { max-height: 280px; overflow-y: auto; }
+        .leaderboard-entry { background: #1a202c; margin: 6px 0; padding: 8px 12px; border-radius: 28px; display: flex; justify-content: space-between; }
+        .toast { position: fixed; bottom: 20px; left: 20px; background: #2a5a2acc; backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 40px; animation: slideFade 3s forwards; z-index: 3000; }
+        @keyframes slideFade { 0% { opacity: 0; transform: translateX(-20px); } 20% { opacity: 1; transform: translateX(0); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateX(-20px); visibility: hidden; } }
+        .cutscene { position: fixed; inset: 0; background: #000000ee; backdrop-filter: blur(20px); display: flex; justify-content: center; align-items: center; z-index: 2000; animation: fadeOut 4s forwards; }
+        .cutscene-text { background: #000000aa; padding: 40px; border-radius: 80px; font-size: 2rem; text-align: center; }
+        @keyframes fadeOut { 0% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+    </style>
 </head>
 <body>
-    <div class="game-container">
-        <!-- LEFT PANEL: Core Game & Events -->
-        <div class="left-panel">
-            <div class="bean-card">
-                <div class="bean" id="bean">🫘</div>
-                <div class="click-hint">Click the Bean</div>
-                <div id="comboDisplay" class="combo">⚡ Combo: 0</div>
-            </div>
-            <div class="stats-grid">
-                <div class="stat"><label>💨 Gas</label><span id="gasValue">0</span></div>
-                <div class="stat"><label>⚡ Click Power</label><span id="powerValue">1</span></div>
-                <div class="stat"><label>🌍 World</label><span id="worldName">Seed Patch</span></div>
-                <div class="stat"><label>🤖 Bots</label><span id="botCount">0</span></div>
-                <div class="stat"><label>⚙️ Gas/sec</label><span id="prodValue">0</span></div>
-                <div class="stat"><label>🌀 Fracture</label><span id="fracturePoints">0</span></div>
-                <div class="stat"><label>🧬 Prestige</label><span id="prestigeLv">0</span></div>
-            </div>
-            <div class="zone-area">
-                <div class="progress-label">Next world: <span id="nextZoneGas">100</span> gas</div>
-                <div class="progress-bar"><div id="zoneFill" class="fill"></div></div>
-            </div>
-            <div id="eventMessage" class="event-toast">✨ Events appear here ✨</div>
-            <div id="bossAlert" class="boss-alert hidden" onclick="defeatBoss()">⚠️ BOSS ACTIVE ⚠️</div>
+<div class="game-container">
+    <!-- LEFT PANEL -->
+    <div class="left-panel">
+        <div class="bean-card">
+            <div class="bean" id="bean">🫘</div>
+            <div class="click-hint">Click the Bean</div>
+            <div id="comboDisplay" class="combo">⚡ Combo: 0</div>
         </div>
-
-        <!-- RIGHT PANEL: Tabs -->
-        <div class="right-panel">
-            <div class="tab-bar">
-                <button class="tab-btn active" data-tab="upgrades">⚡ Upgrades</button>
-                <button class="tab-btn" data-tab="pets">🐾 Pets & Crates</button>
-                <button class="tab-btn" data-tab="leaderboard">🏆 Leaderboard</button>
-            </div>
-
-            <!-- Upgrade Tab (with pages) -->
-            <div id="upgradesTab" class="tab-content active">
-                <div class="upgrade-header">
-                    <button id="prevPageBtn" disabled>◀</button>
-                    <span>Page <span id="pageNum">1</span> / <span id="totalPages">2</span></span>
-                    <button id="nextPageBtn">▶</button>
-                </div>
-                <div id="upgradeList" class="upgrade-grid"></div>
-                <div class="prestige-row">
-                    <div class="upgrade" id="prestigeBtn"><span>🌀 Quantum Leap</span><span class="cost" id="prestigeReq">Reach last world</span><div class="desc">Reset for Fracture & permanent boost</div></div>
-                </div>
-            </div>
-
-            <!-- Pets Tab -->
-            <div id="petsTab" class="tab-content hidden">
-                <div class="crate-area">
-                    <button id="openCrateBtn" class="crate-btn">📦 Open Pet Crate (100 gas)</button>
-                    <div id="crateResult" class="crate-result"></div>
-                </div>
-                <h4>Your Pets</h4>
-                <div id="petInventory" class="pet-inventory"></div>
-                <div class="equip-info">Equipped pets (max 3): <span id="equippedList">None</span></div>
-                <button id="autoEquipBtn" class="small-btn">⚡ Auto-Equip Best</button>
-            </div>
-
-            <!-- Leaderboard Tab -->
-            <div id="leaderboardTab" class="tab-content hidden">
-                <div class="leaderboard-input">
-                    <input type="text" id="playerName" placeholder="Your name" maxlength="12">
-                    <button id="submitScoreBtn">Submit Score</button>
-                </div>
-                <div id="leaderboardList" class="leaderboard-list">Loading...</div>
-                <div class="leaderboard-note">* Score = Fracture + Prestige × 10</div>
-            </div>
+        <div class="stats-grid">
+            <div class="stat"><label>💨 Gas</label><span id="gasValue">0</span></div>
+            <div class="stat"><label>⚡ Click Power</label><span id="powerValue">1</span></div>
+            <div class="stat"><label>🌍 World</label><span id="worldName">Seed Patch</span></div>
+            <div class="stat"><label>🤖 Bots</label><span id="botCount">0</span></div>
+            <div class="stat"><label>⚙️ Gas/sec</label><span id="prodValue">0</span></div>
+            <div class="stat"><label>🌀 Fracture</label><span id="fracturePoints">0</span></div>
+            <div class="stat"><label>🧬 Prestige</label><span id="prestigeLv">0</span></div>
         </div>
+        <div class="zone-area">
+            <div class="progress-label">Next world: <span id="nextZoneGas">100</span> gas</div>
+            <div class="progress-bar"><div id="zoneFill" class="fill"></div></div>
+        </div>
+        <div id="eventMessage" class="event-toast">✨ Events appear here ✨</div>
+        <div id="bossAlert" class="boss-alert hidden" onclick="defeatBoss()">⚠️ BOSS ACTIVE ⚠️</div>
     </div>
 
-    <div id="cutsceneOverlay" class="cutscene hidden">
-        <div id="cutsceneText" class="cutscene-text"></div>
-    </div>
+    <!-- RIGHT PANEL -->
+    <div class="right-panel">
+        <div class="tab-bar">
+            <button class="tab-btn active" data-tab="upgrades" onclick="switchTab('upgrades')">⚡ Upgrades</button>
+            <button class="tab-btn" data-tab="pets" onclick="switchTab('pets')">🐾 Pets & Crates</button>
+            <button class="tab-btn" data-tab="leaderboard" onclick="switchTab('leaderboard')">🏆 Leaderboard</button>
+        </div>
 
-    <script src="script.js"></script>
+        <div id="upgradesTab" class="tab-content active">
+            <div class="upgrade-header">
+                <button onclick="prevPage()">◀</button>
+                <span>Page <span id="pageNum">1</span> / <span id="totalPages">2</span></span>
+                <button onclick="nextPage()">▶</button>
+            </div>
+            <div id="upgradeList" class="upgrade-grid"></div>
+            <div class="prestige-row">
+                <div class="upgrade" onclick="performPrestige()">
+                    <span>🌀 Quantum Leap</span>
+                    <span class="cost" id="prestigeReq">Reach last world</span>
+                    <div class="desc">Reset for Fracture & permanent boost</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="petsTab" class="tab-content hidden">
+            <div class="crate-area">
+                <button class="crate-btn" onclick="openCrate()">📦 Open Pet Crate (100 gas)</button>
+                <div id="crateResult"></div>
+            </div>
+            <h4>Your Pets</h4>
+            <div id="petInventory" class="pet-inventory"></div>
+            <div class="equip-info">Equipped pets (max 3): <span id="equippedList">None</span></div>
+            <button class="small-btn" onclick="autoEquipBest()">⚡ Auto-Equip Best</button>
+        </div>
+
+        <div id="leaderboardTab" class="tab-content hidden">
+            <div class="leaderboard-input">
+                <input type="text" id="playerName" placeholder="Your name" maxlength="12">
+                <button onclick="submitLeaderboardScore()">Submit Score</button>
+            </div>
+            <div id="leaderboardList" class="leaderboard-list">Loading...</div>
+            <div class="leaderboard-note">* Score = Fracture + Prestige × 10</div>
+        </div>
+    </div>
+</div>
+
+<div id="cutsceneOverlay" class="cutscene hidden">
+    <div id="cutsceneText" class="cutscene-text"></div>
+</div>
+
+<script>
+    // ========== GAME DATA ==========
+    const baseZones = [
+        "Seed Patch","Bean Field","Forest Floor","Forest Canopy","Backyard",
+        "Main Street","City Skyline","Skyscraper Roof","Cloud Bridge","Cloud Layer",
+        "High Clouds","Wind Corridor","Airplane Route","Jet Stream","Upper Atmosphere",
+        "Stratosphere","Mesosphere","Thermosphere","Exosphere","Low Orbit",
+        "Satellite Belt","Earth Orbit","Lunar Route","Lunar Zone","Moon Surface",
+        "Dark Side of the Moon","Asteroid Belt","Asteroid Highway","Mars Approach","Mars Orbit",
+        "Martian Frontier","Outer Planet Route","Ring World","Deep Space","Nebula Edge",
+        "Cosmic Clouds","Stellar Nursery","Star Cluster","Supernova Remnant","Galactic Rim",
+        "Galactic Highway","Galactic Center","Galactic Core","Intergalactic Void",
+        "Cosmic Nexus","Quantum Realm","Black Hole Edge","Universal Throne","Beanfinity",
+        "The End..."
+    ];
+    const postZones = [
+        "Reality Fracture", "Memory Overflow", "Developer Layer", "Code Ocean", "Simulation Backbone",
+        "Render Dimension", "Null Space", "Anti-Existence Field", "Broken Continuum", "Lost Variables Zone",
+        "Paradox Plains", "Infinite Loop Realm", "God Debug Room", "Pre-Genesis State", "Post-Story World",
+        "Unwritten Chapter", "Canvas of Nothing", "Admin Control Plane", "Bean Source Code Core", "True Origin Point",
+        "Beyond Infinity", "Outside The Game", "You Are Here (But Not Really)", "Hidden Layer 51", "Final Finality"
+    ];
+    const allZones = [...baseZones, ...postZones];
+
+    let gas = 0;
+    let clickPower = 1;
+    let bots = 0;
+    let botEfficiency = 1;
+    let zoneIndex = 0;
+    let prestigeLevel = 0;
+    let globalMult = 1.0;
+    let fracturePoints = 0;
+    let combo = 0;
+    let comboTimeout = null;
+    let critChance = 0.05;
+    let doubleChance = 0;
+    let autoClickActive = false;
+    let autoClickInterval = null;
+    let petBonusMult = 1;
+
+    let upgradeData = [
+        { id: "click", name: "💨 Stronger Farts", baseCost: 50, cost: 50, effect: () => clickPower++, desc: "+1 click power", multiplier: 1.2 },
+        { id: "mega", name: "✨ Mega Burst", baseCost: 200, cost: 200, effect: () => clickPower += 5, desc: "+5 click power", multiplier: 1.25 },
+        { id: "bot", name: "🤖 Auto Bot", baseCost: 120, cost: 120, effect: () => { bots++; startAutoProd(); }, desc: "+1 gas/sec", multiplier: 1.15 },
+        { id: "turbo", name: "⚡ Turbo Nozzle", baseCost: 300, cost: 300, effect: () => botEfficiency++, desc: "+1 per bot/sec", multiplier: 1.2 },
+        { id: "crit", name: "🎯 Critical Eye", baseCost: 500, cost: 500, effect: () => { if(critChance<0.5) critChance+=0.05; }, desc: "+5% crit chance", multiplier: 1.3 },
+        { id: "double", name: "💎 Double Tap", baseCost: 800, cost: 800, effect: () => { if(doubleChance<0.5) doubleChance+=0.1; }, desc: "+10% double gas", multiplier: 1.4 },
+        { id: "autoclick", name: "🖱️ Auto-Clicker", baseCost: 1000, cost: 1000, effect: () => { if(!autoClickActive){ autoClickActive=true; if(autoClickInterval) clearInterval(autoClickInterval); autoClickInterval=setInterval(()=> addGas(clickPower), 1000); } }, desc: "1 click/sec", multiplier: 1.5 }
+    ];
+    let currentPage = 1;
+    let totalPages = Math.ceil(upgradeData.length / 4);
+
+    const petRarities = ["Common","Rare","Epic","Legendary","Ultimate"];
+    const petBonuses = [0.005, 0.02, 0.08, 0.15, 0.3];
+    const petNames = ["Sprout","Beanling","Cosmic Pup","Void Bunny","Elder Bean","Golden Sprout","Nebula Cat"];
+    let ownedPets = [];
+    let leaderboard = [];
+
+    // DOM refs
+    const gasSpan = document.getElementById("gasValue");
+    const powerSpan = document.getElementById("powerValue");
+    const worldSpan = document.getElementById("worldName");
+    const botSpan = document.getElementById("botCount");
+    const prodSpan = document.getElementById("prodValue");
+    const fractureSpan = document.getElementById("fracturePoints");
+    const prestigeSpan = document.getElementById("prestigeLv");
+    const zoneFill = document.getElementById("zoneFill");
+    const nextZoneSpan = document.getElementById("nextZoneGas");
+    const eventDiv = document.getElementById("eventMessage");
+    const comboDisplay = document.getElementById("comboDisplay");
+    const bossAlert = document.getElementById("bossAlert");
+
+    function getRequiredGas() { return Math.min(100 + zoneIndex * 8, 500); }
+
+    function updateUI() {
+        gasSpan.innerText = Math.floor(gas);
+        powerSpan.innerText = clickPower;
+        worldSpan.innerText = allZones[zoneIndex] || "Infinity";
+        botSpan.innerText = bots;
+        prodSpan.innerText = Math.floor(bots * botEfficiency * globalMult);
+        fractureSpan.innerText = fracturePoints;
+        prestigeSpan.innerText = prestigeLevel;
+        let req = getRequiredGas();
+        zoneFill.style.width = `${(gas % req) / req * 100}%`;
+        nextZoneSpan.innerText = req;
+        saveGame();
+    }
+
+    function updateZone() {
+        let req = getRequiredGas();
+        if (gas >= req && zoneIndex < allZones.length - 1) {
+            gas -= req;
+            zoneIndex++;
+            flashToast(`🌍 Reached ${allZones[zoneIndex]}!`);
+            if (zoneIndex === baseZones.length - 1) playCutscene();
+            if (zoneIndex >= baseZones.length) { fracturePoints++; flashToast("+1 Fracture Point!"); }
+            updateUI();
+            updateZone(); // cascade
+        } else updateUI();
+    }
+
+    function addGas(amount) {
+        let gain = amount * globalMult * petBonusMult;
+        if (Math.random() < doubleChance) gain *= 2;
+        gas += gain;
+        updateZone();
+        updateUI();
+    }
+
+    function startAutoProd() {
+        if (window.prodInterval) clearInterval(window.prodInterval);
+        window.prodInterval = setInterval(() => addGas(bots * botEfficiency), 1000);
+    }
+
+    function incrementCombo() {
+        if (comboTimeout) clearTimeout(comboTimeout);
+        combo++;
+        comboDisplay.innerText = `⚡ Combo: ${combo}`;
+        comboTimeout = setTimeout(() => { combo = 0; comboDisplay.innerText = "⚡ Combo: 0"; }, 3000);
+    }
+
+    function clickBean() {
+        let gain = clickPower;
+        if (combo > 0) gain = Math.floor(gain * (1 + combo * 0.03));
+        if (Math.random() < critChance) gain = Math.floor(gain * 2.5);
+        addGas(gain);
+        incrementCombo();
+        const bean = document.getElementById("bean");
+        bean.style.transform = "scale(0.92)";
+        setTimeout(() => bean.style.transform = "", 80);
+    }
+
+    function renderUpgrades() {
+        const container = document.getElementById("upgradeList");
+        if (!container) return;
+        const start = (currentPage-1)*4;
+        const page = upgradeData.slice(start, start+4);
+        container.innerHTML = page.map(up => `
+            <div class="upgrade" onclick="buyUpgrade('${up.id}')">
+                <span>${up.name}</span>
+                <span class="cost">${Math.floor(up.cost)}</span>
+                <div class="desc">${up.desc}</div>
+            </div>
+        `).join("");
+        document.getElementById("pageNum").innerText = currentPage;
+        document.getElementById("totalPages").innerText = totalPages;
+        document.getElementById("prevPageBtn").disabled = currentPage === 1;
+        document.getElementById("nextPageBtn").disabled = currentPage === totalPages;
+    }
+    function buyUpgrade(id) {
+        const up = upgradeData.find(u => u.id === id);
+        if (gas >= up.cost) {
+            gas -= up.cost;
+            up.effect();
+            up.cost = Math.floor(up.cost * up.multiplier);
+            renderUpgrades();
+            updateUI();
+            flashToast(`Bought ${up.name}`);
+        } else flashToast("Not enough gas!");
+    }
+    function nextPage() { if (currentPage < totalPages) { currentPage++; renderUpgrades(); } }
+    function prevPage() { if (currentPage > 1) { currentPage--; renderUpgrades(); } }
+
+    function performPrestige() {
+        if (zoneIndex < baseZones.length - 1) { flashToast("Reach 'The End...' first!"); return; }
+        let gained = 5 + Math.floor(gas / 1000);
+        fracturePoints += gained;
+        prestigeLevel++;
+        globalMult = 1 + prestigeLevel * 0.2;
+        gas = 0; clickPower = 1; bots = 0; botEfficiency = 1; zoneIndex = 0;
+        upgradeData.forEach(u => u.cost = u.baseCost);
+        if (autoClickInterval) clearInterval(autoClickInterval);
+        autoClickActive = false;
+        critChance = 0.05; doubleChance = 0;
+        updateZone(); updateUI(); renderUpgrades();
+        flashToast(`Prestige Lv ${prestigeLevel} | +${gained} Fracture!`);
+        submitLeaderboardScore();
+    }
+
+    const events = [
+        { name:"🌱 Bean Rain", act:()=>{ addGas(100); return "+100 gas!"; } },
+        { name:"✨ Golden Bean", act:()=>{ addGas(clickPower*40); return `+${clickPower*40} gas!`; } },
+        { name:"💨 Surge", act:()=>{ let old=globalMult; globalMult*=1.3; setTimeout(()=>{ globalMult=old; updateUI(); }, 30000); return "Global +30% for 30s!"; } },
+        { name:"🔧 Cheap Parts", act:()=>{ upgradeData.forEach(u=>u.cost=Math.floor(u.cost*0.8)); renderUpgrades(); setTimeout(()=>{ upgradeData.forEach(u=>u.cost=Math.floor(u.cost/0.8)); renderUpgrades(); }, 45000); return "Upgrades -20% for 45s!"; } }
+    ];
+    function triggerRandomEvent() {
+        let ev = events[Math.floor(Math.random()*events.length)];
+        let msg = ev.act();
+        eventDiv.innerHTML = `✨ ${ev.name}: ${msg}`;
+        flashToast(msg);
+        setTimeout(()=> eventDiv.innerHTML = "✨ Events appear here ✨", 4000);
+        updateUI();
+    }
+
+    let activeBoss = null;
+    function trySpawnBoss() {
+        if (zoneIndex < 15 || activeBoss) return;
+        if (Math.random() < 0.2) {
+            activeBoss = { name:"🐉 Lag Entity", resolveCost:5 };
+            globalMult *= 0.8;
+            updateUI();
+            bossAlert.innerHTML = `⚠️ BOSS: ${activeBoss.name}! -20% prod. Click to defeat (${activeBoss.resolveCost} FP)`;
+            bossAlert.classList.remove("hidden");
+        }
+    }
+    function defeatBoss() {
+        if (activeBoss && fracturePoints >= activeBoss.resolveCost) {
+            fracturePoints -= activeBoss.resolveCost;
+            globalMult /= 0.8;
+            activeBoss = null;
+            bossAlert.classList.add("hidden");
+            flashToast("Boss defeated!");
+            updateUI();
+        } else flashToast("Not enough Fracture Points");
+    }
+    setInterval(trySpawnBoss, 90000);
+    window.defeatBoss = defeatBoss;
+
+    function getRandomPet() {
+        let roll = Math.random();
+        let idx = roll<0.5 ? 0 : roll<0.75 ? 1 : roll<0.9 ? 2 : roll<0.98 ? 3 : 4;
+        let name = petNames[Math.floor(Math.random()*petNames.length)] + ` (${petRarities[idx]})`;
+        return { id: Date.now()+Math.random(), name, bonus: petBonuses[idx], rarity: idx, equipped: false };
+    }
+    function openCrate() {
+        if (gas < 100) { flashToast("Need 100 gas"); return; }
+        gas -= 100;
+        let pet = getRandomPet();
+        ownedPets.push(pet);
+        document.getElementById("crateResult").innerHTML = `🎁 You got: ${pet.name} (+${(pet.bonus*100).toFixed(1)}% production)!`;
+        renderPetInventory();
+        updateUI();
+        setTimeout(()=> document.getElementById("crateResult").innerHTML = "", 3000);
+    }
+    function renderPetInventory() {
+        const container = document.getElementById("petInventory");
+        if (!container) return;
+        container.innerHTML = ownedPets.map((p,i) => `
+            <div class="pet-card ${p.equipped ? 'equipped' : ''}" onclick="toggleEquip(${i})">
+                <strong>${p.name}</strong><br>
+                +${(p.bonus*100).toFixed(1)}%<br>
+                ${p.equipped ? '✔️' : '🔘'}
+            </div>
+        `).join("");
+        let equippedNames = ownedPets.filter(p=>p.equipped).map(p=>p.name).join(", ");
+        document.getElementById("equippedList").innerText = equippedNames || "None";
+        updatePetBonus();
+    }
+    function toggleEquip(idx) {
+        let pet = ownedPets[idx];
+        if (pet.equipped) pet.equipped = false;
+        else {
+            if (ownedPets.filter(p=>p.equipped).length >= 3) { flashToast("Max 3 pets equipped"); return; }
+            pet.equipped = true;
+        }
+        renderPetInventory();
+    }
+    function autoEquipBest() {
+        ownedPets.forEach(p=>p.equipped=false);
+        let sorted = [...ownedPets].sort((a,b)=>b.bonus - a.bonus);
+        for(let i=0;i<Math.min(3,sorted.length);i++) sorted[i].equipped=true;
+        renderPetInventory();
+    }
+    function updatePetBonus() {
+        let total = ownedPets.filter(p=>p.equipped).reduce((s,p)=>s+p.bonus,0);
+        petBonusMult = 1 + total;
+    }
+
+    function loadLeaderboard() {
+        let stored = localStorage.getItem("beanLeaderboard");
+        leaderboard = stored ? JSON.parse(stored) : [];
+        renderLeaderboard();
+    }
+    function renderLeaderboard() {
+        let sorted = [...leaderboard].sort((a,b)=>b.score - a.score).slice(0,10);
+        let html = sorted.map(e => `<div class="leaderboard-entry"><span>${escapeHtml(e.name)}</span><span>${e.score} pts</span></div>`).join("");
+        document.getElementById("leaderboardList").innerHTML = html || "<div>No scores yet. Submit yours!</div>";
+    }
+    function submitLeaderboardScore() {
+        let name = document.getElementById("playerName").value.trim();
+        if (!name) name = "BeanMaster";
+        let score = fracturePoints + prestigeLevel * 10;
+        leaderboard.push({ name, score });
+        leaderboard.sort((a,b)=>b.score - a.score);
+        leaderboard = leaderboard.slice(0,20);
+        localStorage.setItem("beanLeaderboard", JSON.stringify(leaderboard));
+        renderLeaderboard();
+        flashToast("Score submitted!");
+    }
+    function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+
+    function playCutscene() {
+        let overlay = document.getElementById("cutsceneOverlay");
+        let textDiv = document.getElementById("cutsceneText");
+        overlay.classList.remove("hidden");
+        textDiv.innerText = "🌀 You reached The End...\nBut the simulation continues...\n✨ Endless worlds await ✨";
+        setTimeout(()=> overlay.classList.add("hidden"), 5000);
+    }
+
+    function saveGame() {
+        let save = { gas, clickPower, bots, botEfficiency, zoneIndex, prestigeLevel, globalMult, fracturePoints,
+                     upgradeCosts: upgradeData.map(u=>u.cost), ownedPets, critChance, doubleChance, autoClickActive };
+        localStorage.setItem("beanEmpireSave", JSON.stringify(save));
+    }
+    function loadGame() {
+        let raw = localStorage.getItem("beanEmpireSave");
+        if (raw) {
+            let d = JSON.parse(raw);
+            gas = d.gas??0; clickPower = d.clickPower??1; bots = d.bots??0; botEfficiency = d.botEfficiency??1;
+            zoneIndex = d.zoneIndex??0; prestigeLevel = d.prestigeLevel??0; globalMult = d.globalMult??1;
+            fracturePoints = d.fracturePoints??0; critChance = d.critChance??0.05; doubleChance = d.doubleChance??0;
+            autoClickActive = d.autoClickActive??false;
+            if (d.upgradeCosts) upgradeData.forEach((u,i)=> u.cost = d.upgradeCosts[i]??u.baseCost);
+            if (d.ownedPets) ownedPets = d.ownedPets;
+            if (autoClickActive && !autoClickInterval) autoClickInterval = setInterval(()=> addGas(clickPower), 1000);
+            renderUpgrades();
+            renderPetInventory();
+            updateZone();
+            updateUI();
+        }
+        setInterval(saveGame, 30000);
+    }
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+        document.getElementById(`${tabId}Tab`).classList.remove('hidden');
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
+    }
+
+    function flashToast(msg, isErr=false) {
+        let t = document.createElement("div");
+        t.className = "toast";
+        t.innerText = msg;
+        t.style.background = isErr ? "#a12222cc" : "#2a5a2acc";
+        document.body.appendChild(t);
+        setTimeout(()=>t.remove(), 2500);
+    }
+
+    // Expose global functions for inline onclick
+    window.clickBean = clickBean;
+    window.buyUpgrade = buyUpgrade;
+    window.nextPage = nextPage;
+    window.prevPage = prevPage;
+    window.performPrestige = performPrestige;
+    window.openCrate = openCrate;
+    window.toggleEquip = toggleEquip;
+    window.autoEquipBest = autoEquipBest;
+    window.submitLeaderboardScore = submitLeaderboardScore;
+    window.defeatBoss = defeatBoss;
+    window.switchTab = switchTab;
+
+    document.getElementById("bean").onclick = clickBean;
+
+    loadGame();
+    loadLeaderboard();
+    renderUpgrades();
+    renderPetInventory();
+    updateUI();
+    updatePetBonus();
+    startAutoProd();
+    setInterval(()=> triggerRandomEvent(), 75000);
+    flashToast("Bean Empire Awakened! Click the bean.", false);
+</script>
 </body>
 </html>
