@@ -3,95 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Bean Empire · Prestige · Pets · Bosses</title>
+    <title>Bean Empire · Leaderboard & Fast Progression</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="game-container">
-        <!-- LEFT COLUMN: MAIN GAMEPLAY -->
-        <div class="main-panel">
-            <div class="bean-card">
+    <div class="game-wrapper">
+        <!-- Left: Main Game -->
+        <div class="main-column">
+            <div class="bean-area">
                 <div class="bean" id="bean">🫘</div>
-                <div class="click-hint">Click the Bean</div>
+                <div class="click-hint">🔥 Click the Bean! 🔥</div>
+                <div id="comboDisplay" class="combo">⚡ Combo: 0</div>
             </div>
             <div class="stats-grid">
-                <div class="stat"><span class="label">💨 Gas</span><span id="gasValue" class="value">0</span></div>
-                <div class="stat"><span class="label">⚡ Click Power</span><span id="powerValue" class="value">1</span></div>
-                <div class="stat"><span class="label">🌌 Zone</span><span id="zoneName" class="value">Seed Patch</span></div>
-                <div class="stat"><span class="label">🤖 Bots</span><span id="botCount" class="value">0</span></div>
-                <div class="stat"><span class="label">⚙️ Gas/sec</span><span id="prodValue" class="value">0</span></div>
-                <div class="stat"><span class="label">🌀 Fracture</span><span id="fracturePoints" class="value">0</span></div>
-                <div class="stat"><span class="label">🧬 Layer</span><span id="layerNum" class="value">0</span></div>
-                <div class="stat"><span class="label">🐾 Pet Bonus</span><span id="petBonusValue" class="value">0%</span></div>
+                <div class="stat"><span>💨 Gas</span><span id="gasValue">0</span></div>
+                <div class="stat"><span>⚡ Click Power</span><span id="powerValue">1</span></div>
+                <div class="stat"><span>🌍 World</span><span id="worldName">Seed Patch</span></div>
+                <div class="stat"><span>🤖 Bots</span><span id="botCount">0</span></div>
+                <div class="stat"><span>⚙️ Gas/sec</span><span id="prodValue">0</span></div>
+                <div class="stat"><span>🌀 Fracture</span><span id="fracturePoints">0</span></div>
+                <div class="stat"><span>🧬 Prestige Lv</span><span id="layerNum">0</span></div>
             </div>
-            <div class="zone-progress">
-                <div class="progress-label">⬆️ Next zone at +100 gas</div>
-                <div class="progress-bar"><div id="zoneFill" class="fill"></div></div>
+            <div class="zone-bar">
+                <div class="zone-progress-bg"><div id="zoneFill" class="zone-fill"></div></div>
+                <div class="next-goal">➡️ Next world: <span id="nextZoneGas">100</span> gas</div>
             </div>
-            <div id="eventLog" class="event-log">✨ Events will appear here</div>
-            <div id="threatPanel" class="threat-panel"></div>
+            <div id="eventMessage" class="event-toast">✨ Events pop up here ✨</div>
+            <div id="bossAlert" class="boss-alert hidden"></div>
         </div>
 
-        <!-- RIGHT COLUMN: UPGRADES + NEW SYSTEMS -->
-        <div class="side-panel">
-            <div class="upgrade-group">
-                <h3>🔧 CORE UPGRADES</h3>
-                <div class="upgrade" id="upgradeClick"><span>💨 Stronger Farts</span><span class="cost" id="clickCost">50</span><div class="desc">+1 click power (scales)</div></div>
-                <div class="upgrade" id="upgradeMega"><span>✨ Mega Burst</span><span class="cost" id="megaCost">200</span><div class="desc">+5 click power</div></div>
-                <div class="upgrade" id="buyBot"><span>🤖 Auto Bot</span><span class="cost" id="botCost">120</span><div class="desc">+1 gas/sec</div></div>
-                <div class="upgrade" id="upgradeBot"><span>⚡ Turbo Nozzle</span><span class="cost" id="turboCost">300</span><div class="desc">+1 per bot/sec</div></div>
+        <!-- Right: Upgrades & Leaderboard -->
+        <div class="right-column">
+            <div class="upgrade-panel">
+                <h3>⚡ FAST UPGRADES</h3>
+                <div class="upgrade" id="upgradeClick"><span>💨 Stronger Farts</span><span class="cost" id="clickCost">50</span><div>+1 click power</div></div>
+                <div class="upgrade" id="upgradeMega"><span>✨ Mega Burst</span><span class="cost" id="megaCost">200</span><div>+5 click power</div></div>
+                <div class="upgrade" id="buyBot"><span>🤖 Auto Bot</span><span class="cost" id="botCost">120</span><div>+1 gas/sec</div></div>
+                <div class="upgrade" id="upgradeBot"><span>⚡ Turbo Nozzle</span><span class="cost" id="turboCost">300</span><div>+1 per bot/sec</div></div>
+                <div class="upgrade" id="prestigeBtn"><span>🌀 Quantum Leap</span><span class="cost" id="prestigeReq">Reach The End...</span><div>Reset for Fracture &amp; permanent boost</div></div>
             </div>
 
-            <div class="upgrade-group">
-                <h3>🌀 PRESTIGE (Quantum Reset)</h3>
-                <div class="upgrade" id="prestigeBtn"><span>🌊 Quantum Leap</span><span class="cost" id="layerCost">Reach The End...</span><div class="desc">Earn Fracture Points &amp; unlock Skill Tree</div></div>
-                <div class="upgrade" id="skillTreeBtn"><span>🌳 Prestige Skill Tree</span><span class="cost" id="skillPointDisplay">0 FP</span><div class="desc">Spend Fracture Points for permanent bonuses</div></div>
-            </div>
-
-            <div class="upgrade-group">
-                <h3>🐾 PETS & CRATES</h3>
-                <div class="upgrade" id="openCrateBtn"><span>📦 Open Pet Crate</span><span class="cost" id="crateCost">100 gas</span><div class="desc">Random pet (rarity scales with zone)</div></div>
-                <div class="upgrade" id="inventoryBtn"><span>🎒 Inventory / Equip</span><span class="cost" style="color:#aaa;">—</span><div class="desc">Manage pets & loadouts</div></div>
-                <div id="petDisplay" class="pet-status">No pet equipped</div>
-            </div>
-            <div class="info-text">💾 Auto-saves every 30s | Bosses appear after zone 20</div>
-        </div>
-    </div>
-
-    <!-- MODAL FOR SKILL TREE -->
-    <div id="skillTreeModal" class="modal hidden">
-        <div class="modal-content">
-            <span class="close-modal" id="closeSkillTree">&times;</span>
-            <h2>🌳 Prestige Skill Tree</h2>
-            <p>Fracture Points: <strong id="modalFracture">0</strong></p>
-            <div class="skill-tree-grid">
-                <div class="skill-card" data-skill="prod1"><span>🌾 Production I</span><span class="cost">5 FP</span><div>+10% global production</div><button class="buySkill">Buy</button></div>
-                <div class="skill-card" data-skill="prod2"><span>⚙️ Production II</span><span class="cost">15 FP</span><div>+25% global production</div><button class="buySkill">Buy</button></div>
-                <div class="skill-card" data-skill="autoClick"><span>🖱️ Auto-Clicker</span><span class="cost">20 FP</span><div>1 click/sec (stacks)</div><button class="buySkill">Buy</button></div>
-                <div class="skill-card" data-skill="bossKiller"><span>👑 Boss Slayer</span><span class="cost">10 FP</span><div>Bosses spawn 30% less often</div><button class="buySkill">Buy</button></div>
-                <div class="skill-card" data-skill="petLover"><span>🐾 Pet Synergy</span><span class="cost">12 FP</span><div>Pet bonuses +50%</div><button class="buySkill">Buy</button></div>
-                <div class="skill-card" data-skill="chaosLuck"><span>🎲 Chaos Luck</span><span class="cost">18 FP</span><div>Random event rewards doubled</div><button class="buySkill">Buy</button></div>
+            <div class="leaderboard-panel">
+                <h3>🏆 GLOBAL LEADERBOARD</h3>
+                <div class="leaderboard-controls">
+                    <input type="text" id="playerName" placeholder="Your name" maxlength="12">
+                    <button id="submitScoreBtn">Submit Score</button>
+                </div>
+                <div id="leaderboardList" class="leaderboard-list">
+                    <div class="leaderboard-entry">Loading...</div>
+                </div>
+                <div class="leaderboard-note">* Based on Prestige Score (Fracture + Prestige level)</div>
             </div>
         </div>
     </div>
 
-    <!-- MODAL FOR INVENTORY -->
-    <div id="inventoryModal" class="modal hidden">
-        <div class="modal-content">
-            <span class="close-modal" id="closeInventory">&times;</span>
-            <h2>🎒 Pet Inventory</h2>
-            <div id="petInventoryList" class="inventory-grid"></div>
-            <div class="loadout-buttons">
-                <button id="autoEquipBest">⚡ Auto-Equip Best</button>
-                <button id="clearEquip">🗑️ Clear Equipped</button>
-            </div>
-            <p><strong>Equipped pets:</strong> <span id="equippedList">None</span></p>
-            <p><em>Max 3 pets equipped. Bonuses stack.</em></p>
-        </div>
-    </div>
-
+    <!-- Cutscene Overlay -->
     <div id="cutsceneOverlay" class="cutscene hidden">
-        <div id="cutsceneText"></div>
+        <div id="cutsceneText" class="cutscene-text"></div>
     </div>
 
     <script src="game.js"></script>
