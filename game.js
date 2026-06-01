@@ -32,19 +32,31 @@ let globalMult = 1.0;
 let fracturePoints = 0;
 let combo = 0;
 let comboTimeout = null;
-let critChance = 0.05;  // base 5%
-let doubleChance = 0.0; // % chance to double gas gain
+let critChance = 0.05;
+let doubleChance = 0;
 let autoClickActive = false;
 let autoClickInterval = null;
 
 // Upgrade costs (scalable)
-let clickCost = 50;
-let megaCost = 200;
-let botCost = 120;
-let turboCost = 300;
-let critCost = 500;
-let doubleCost = 800;
-let autoClickCost = 1000;
+let upgradeData = [
+    { id: "click", name: "💨 Stronger Farts", baseCost: 50, cost: 50, effect: () => { clickPower++; }, desc: "+1 click power", multiplier: 1.2 },
+    { id: "mega", name: "✨ Mega Burst", baseCost: 200, cost: 200, effect: () => { clickPower += 5; }, desc: "+5 click power", multiplier: 1.25 },
+    { id: "bot", name: "🤖 Auto Bot", baseCost: 120, cost: 120, effect: () => { bots++; }, desc: "+1 gas/sec", multiplier: 1.15 },
+    { id: "turbo", name: "⚡ Turbo Nozzle", baseCost: 300, cost: 300, effect: () => { botEfficiency++; }, desc: "+1 per bot/sec", multiplier: 1.2 },
+    { id: "crit", name: "🎯 Critical Eye", baseCost: 500, cost: 500, effect: () => { if(critChance<0.5) critChance+=0.05; }, desc: "+5% crit chance", multiplier: 1.3 },
+    { id: "double", name: "💎 Double Tap", baseCost: 800, cost: 800, effect: () => { if(doubleChance<0.5) doubleChance+=0.1; }, desc: "+10% double gas", multiplier: 1.4 },
+    { id: "autoclick", name: "🖱️ Auto-Clicker", baseCost: 1000, cost: 1000, effect: () => { if(!autoClickActive){ autoClickActive=true; if(autoClickInterval) clearInterval(autoClickInterval); autoClickInterval=setInterval(()=>{ addGas(clickPower); },1000); } }, desc: "1 click/sec", multiplier: 1.5 }
+];
+const pageSize = 4;
+let currentPage = 1;
+let totalPages = Math.ceil(upgradeData.length / pageSize);
+
+// Pets
+const petRarities = ["Common","Rare","Epic","Legendary","Ultimate"];
+const petBonuses = [0.005, 0.02, 0.08, 0.15, 0.3];
+const petNames = ["Sprout","Beanling","Cosmic Pup","Void Bunny","Elder Bean","Golden Sprout","Nebula Cat"];
+let ownedPets = [];
+let equippedPets = [];
 
 // Leaderboard
 let leaderboard = [];
@@ -63,61 +75,38 @@ const eventDiv = document.getElementById("eventMessage");
 const bossAlert = document.getElementById("bossAlert");
 const comboDisplay = document.getElementById("comboDisplay");
 
-// Helper: get required gas for current zone
-function getRequiredGasForZone() {
-    // Scaling: 100 + zoneIndex * 8 (max 500)
-    return Math.min(100 + zoneIndex * 8, 500);
-}
+// Helper: required gas for current zone
+function getRequiredGasForZone() { return Math.min(100 + zoneIndex * 8, 500); }
 
 function updateUI() {
     gasSpan.innerText = Math.floor(gas);
     powerSpan.innerText = clickPower;
     worldSpan.innerText = allZones[zoneIndex] || "Infinity";
     botSpan.innerText = bots;
-    let prod = bots * botEfficiency;
-    prodSpan.innerText = Math.floor(prod * globalMult);
+    prodSpan.innerText = Math.floor(bots * botEfficiency * globalMult);
     fractureSpan.innerText = fracturePoints;
     prestigeSpan.innerText = prestigeLevel;
     let required = getRequiredGasForZone();
-    let progress = (gas % required) / required * 100;
-    zoneFill.style.width = `${progress}%`;
+    zoneFill.style.width = `${(gas % required) / required * 100}%`;
     nextZoneSpan.innerText = required;
-    // Update upgrade costs display
-    document.getElementById("clickCost").innerText = clickCost;
-    document.getElementById("megaCost").innerText = megaCost;
-    document.getElementById("botCost").innerText = botCost;
-    document.getElementById("turboCost").innerText = turboCost;
-    document.getElementById("critCost").innerText = critCost;
-    document.getElementById("doubleCost").innerText = doubleCost;
-    document.getElementById("autoClickCost").innerText = autoClickCost;
     saveGame();
 }
 
-// Zone advancement (scaled)
 function updateZone() {
     let required = getRequiredGasForZone();
     if (gas >= required && zoneIndex < allZones.length - 1) {
         gas -= required;
         zoneIndex++;
         flashEffect("world", `🌍 Reached ${allZones[zoneIndex]}!`);
-        if (zoneIndex === baseZones.length - 1) { // "The End..."
-            playCutscene();
-        }
-        if (zoneIndex >= baseZones.length) {
-            fracturePoints += 1;
-            flashEffect("fracture", "+1 Fracture Point!");
-        }
+        if (zoneIndex === baseZones.length - 1) playCutscene();
+        if (zoneIndex >= baseZones.length) { fracturePoints++; flashEffect("fracture", "+1 Fracture!"); }
         updateUI();
-        // After moving to new zone, check again if we can go further immediately
-        updateZone();
-    } else {
-        updateUI();
-    }
+        updateZone(); // cascade
+    } else updateUI();
 }
 
 function addGas(amount) {
     let gain = amount * globalMult;
-    // Double chance
     if (Math.random() < doubleChance) gain *= 2;
     gas += gain;
     updateZone();
@@ -129,37 +118,52 @@ function incrementCombo() {
     if (comboTimeout) clearTimeout(comboTimeout);
     combo++;
     comboDisplay.innerText = `⚡ Combo: ${combo}`;
-    comboDisplay.style.animation = "pulse 0.2s";
-    setTimeout(() => { comboDisplay.style.animation = ""; }, 200);
-    comboTimeout = setTimeout(() => {
-        combo = 0;
-        comboDisplay.innerText = "⚡ Combo: 0";
-    }, 3000);
+    comboTimeout = setTimeout(() => { combo = 0; comboDisplay.innerText = "⚡ Combo: 0"; }, 3000);
 }
-
 function clickBean(e) {
     let gain = clickPower;
     if (combo > 0) gain = Math.floor(gain * (1 + combo * 0.03));
-    let isCrit = Math.random() < critChance;
-    if (isCrit) gain = Math.floor(gain * 2.5);
+    if (Math.random() < critChance) gain = Math.floor(gain * 2.5);
     addGas(gain);
     incrementCombo();
-    // Visual feedback
     e.currentTarget.style.transform = "scale(0.92)";
     setTimeout(() => { if(e.currentTarget) e.currentTarget.style.transform = ""; }, 80);
-    gasSpan.style.transform = "scale(1.1)";
-    setTimeout(() => { gasSpan.style.transform = ""; }, 150);
-    if (isCrit) flashEffect("crit", "CRITICAL!");
 }
 
-// Upgrades
-function buyClick() { if(gas>=clickCost){ gas-=clickCost; clickPower++; clickCost=Math.floor(clickCost*1.2); updateUI(); flashEffect("upgrade","Click power +1"); } }
-function buyMega() { if(gas>=megaCost){ gas-=megaCost; clickPower+=5; megaCost=Math.floor(megaCost*1.25); updateUI(); flashEffect("upgrade","+5 Click power"); } }
-function buyBot() { if(gas>=botCost){ gas-=botCost; bots++; botCost=Math.floor(botCost*1.15); updateUI(); flashEffect("upgrade","Bot acquired"); } }
-function buyTurbo() { if(gas>=turboCost){ gas-=turboCost; botEfficiency++; turboCost=Math.floor(turboCost*1.2); updateUI(); flashEffect("upgrade","Efficiency +1"); } }
-function buyCrit() { if(gas>=critCost && critChance<0.5){ gas-=critCost; critChance += 0.05; critCost=Math.floor(critCost*1.3); updateUI(); flashEffect("upgrade","Crit chance +5%"); } }
-function buyDouble() { if(gas>=doubleCost && doubleChance<0.5){ gas-=doubleCost; doubleChance += 0.1; doubleCost=Math.floor(doubleCost*1.4); updateUI(); flashEffect("upgrade","Double chance +10%"); } }
-function buyAutoClick() { if(gas>=autoClickCost && !autoClickActive){ gas-=autoClickCost; autoClickActive=true; if(autoClickInterval) clearInterval(autoClickInterval); autoClickInterval=setInterval(()=>{ addGas(clickPower); },1000); updateUI(); flashEffect("upgrade","Auto-Clicker activated!"); } }
+// Upgrade rendering (paginated)
+function renderUpgrades() {
+    const container = document.getElementById("upgradeList");
+    const start = (currentPage-1)*pageSize;
+    const pageUpgrades = upgradeData.slice(start, start+pageSize);
+    container.innerHTML = pageUpgrades.map(up => `
+        <div class="upgrade" data-id="${up.id}">
+            <span>${up.name}</span>
+            <span class="cost">${Math.floor(up.cost)}</span>
+            <div class="desc">${up.desc}</div>
+        </div>
+    `).join("");
+    document.querySelectorAll("#upgradeList .upgrade").forEach(el => {
+        const id = el.dataset.id;
+        const up = upgradeData.find(u => u.id === id);
+        el.onclick = () => {
+            if(gas >= up.cost) {
+                gas -= up.cost;
+                up.effect();
+                up.cost = Math.floor(up.cost * up.multiplier);
+                renderUpgrades();
+                updateUI();
+                flashEffect("upgrade", `Bought ${up.name}`);
+            } else flashEffect("error", "Not enough gas", true);
+        };
+    });
+    document.getElementById("pageNum").innerText = currentPage;
+    document.getElementById("totalPages").innerText = totalPages;
+    document.getElementById("prevPageBtn").disabled = currentPage === 1;
+    document.getElementById("nextPageBtn").disabled = currentPage === totalPages;
+}
+
+function nextPage() { if(currentPage < totalPages) { currentPage++; renderUpgrades(); } }
+function prevPage() { if(currentPage > 1) { currentPage--; renderUpgrades(); } }
 
 // Prestige
 function performPrestige() {
@@ -168,34 +172,23 @@ function performPrestige() {
     fracturePoints += gained;
     prestigeLevel++;
     globalMult = 1 + prestigeLevel * 0.2;
-    // reset resources but keep perma upgrades? keep critical/double rates?
-    gas = 0;
-    clickPower = 1;
-    bots = 0;
-    botEfficiency = 1;
-    zoneIndex = 0;
-    clickCost = 50;
-    megaCost = 200;
-    botCost = 120;
-    turboCost = 300;
-    critCost = 500;
-    doubleCost = 800;
-    autoClickCost = 1000;
-    // reset auto-clicker if active
+    // reset
+    gas = 0; clickPower = 1; bots = 0; botEfficiency = 1; zoneIndex = 0;
+    upgradeData.forEach(u => u.cost = u.baseCost);
     if(autoClickInterval) clearInterval(autoClickInterval);
     autoClickActive = false;
-    updateZone();
-    updateUI();
+    critChance = 0.05; doubleChance = 0;
+    updateZone(); updateUI(); renderUpgrades();
     flashEffect("prestige", `Prestige Lv ${prestigeLevel} | +${gained} Fracture!`);
-    submitLeaderboardScore(); // update leaderboard after prestige
+    submitLeaderboardScore();
 }
 
-// Random events (every 60-90 sec)
+// Random events
 const events = [
     { name:"🌱 Bean Rain", act:()=>{ addGas(100); return "+100 gas!"; } },
     { name:"✨ Golden Bean", act:()=>{ addGas(clickPower*40); return `+${clickPower*40} gas!`; } },
     { name:"💨 Surge", act:()=>{ let old=globalMult; globalMult*=1.3; setTimeout(()=>{ globalMult=old; updateUI(); }, 30000); return "Global +30% for 30s!"; } },
-    { name:"🔧 Cheap Parts", act:()=>{ clickCost=Math.floor(clickCost*0.8); megaCost=Math.floor(megaCost*0.8); botCost=Math.floor(botCost*0.8); turboCost=Math.floor(turboCost*0.8); critCost=Math.floor(critCost*0.8); doubleCost=Math.floor(doubleCost*0.8); autoClickCost=Math.floor(autoClickCost*0.8); setTimeout(()=>{ clickCost*=1.25; megaCost*=1.25; botCost*=1.25; turboCost*=1.25; critCost*=1.25; doubleCost*=1.25; autoClickCost*=1.25; updateUI(); }, 45000); return "All upgrades -20% for 45s!"; } }
+    { name:"🔧 Cheap Parts", act:()=>{ upgradeData.forEach(u=>u.cost=Math.floor(u.cost*0.8)); renderUpgrades(); setTimeout(()=>{ upgradeData.forEach(u=>u.cost=Math.floor(u.cost/0.8)); renderUpgrades(); }, 45000); return "Upgrades -20% for 45s!"; } }
 ];
 function triggerRandomEvent() {
     let ev = events[Math.floor(Math.random()*events.length)];
@@ -209,12 +202,12 @@ function triggerRandomEvent() {
 // Boss system
 let activeBoss = null;
 function trySpawnBoss() {
-    if (zoneIndex < 15) return;
-    if (!activeBoss && Math.random() < 0.2) {
-        activeBoss = { name:"🐉 Lag Entity", resolveCost:5, active:true };
+    if (zoneIndex < 15 || activeBoss) return;
+    if (Math.random() < 0.2) {
+        activeBoss = { name:"🐉 Lag Entity", resolveCost:5 };
         globalMult *= 0.8;
         updateUI();
-        bossAlert.innerHTML = `⚠️ BOSS: ${activeBoss.name}! -20% production. Click to defeat (${activeBoss.resolveCost} FP)`;
+        bossAlert.innerHTML = `⚠️ BOSS: ${activeBoss.name}! -20% prod. Click to defeat (${activeBoss.resolveCost} FP)`;
         bossAlert.classList.remove("hidden");
     }
 }
@@ -224,21 +217,89 @@ function defeatBoss() {
         globalMult /= 0.8;
         activeBoss = null;
         bossAlert.classList.add("hidden");
-        flashEffect("boss", "Boss defeated! Production restored.");
+        flashEffect("boss", "Boss defeated!");
         updateUI();
-    } else {
-        flashEffect("error", "Not enough Fracture Points!", true);
-    }
+    } else flashEffect("error", "Not enough Fracture Points", true);
 }
 setInterval(trySpawnBoss, 90000);
 window.defeatBoss = defeatBoss;
-bossAlert.onclick = defeatBoss;
 
-// Leaderboard (localStorage)
+// Pets & Crates
+function getRandomPet() {
+    let rarityRoll = Math.random();
+    let rarityIdx = 0;
+    if (rarityRoll < 0.5) rarityIdx = 0;      // Common 50%
+    else if (rarityRoll < 0.75) rarityIdx = 1; // Rare 25%
+    else if (rarityRoll < 0.9) rarityIdx = 2;  // Epic 15%
+    else if (rarityRoll < 0.98) rarityIdx = 3; // Legendary 8%
+    else rarityIdx = 4;                        // Ultimate 2%
+    let name = petNames[Math.floor(Math.random() * petNames.length)] + ` (${petRarities[rarityIdx]})`;
+    let bonus = petBonuses[rarityIdx];
+    return { id: Date.now() + Math.random(), name, bonus, rarity: rarityIdx, equipped: false };
+}
+function openCrate() {
+    if (gas < 100) { flashEffect("error", "Need 100 gas", true); return; }
+    gas -= 100;
+    let pet = getRandomPet();
+    ownedPets.push(pet);
+    document.getElementById("crateResult").innerHTML = `🎁 You got: ${pet.name} (+${(pet.bonus*100).toFixed(1)}% production)!`;
+    renderPetInventory();
+    updateUI();
+    setTimeout(()=>{ document.getElementById("crateResult").innerHTML = ""; }, 3000);
+}
+function renderPetInventory() {
+    const container = document.getElementById("petInventory");
+    container.innerHTML = ownedPets.map((p, idx) => `
+        <div class="pet-card ${p.equipped ? 'equipped' : ''}" onclick="toggleEquip(${idx})">
+            <strong>${p.name}</strong><br>
+            +${(p.bonus*100).toFixed(1)}%<br>
+            ${p.equipped ? '✔️' : '🔘'}
+        </div>
+    `).join("");
+    let equipped = ownedPets.filter(p => p.equipped).map(p => p.name).join(", ");
+    document.getElementById("equippedList").innerText = equipped || "None";
+    updatePetBonus();
+}
+function toggleEquip(idx) {
+    let pet = ownedPets[idx];
+    if (pet.equipped) {
+        pet.equipped = false;
+    } else {
+        if (ownedPets.filter(p => p.equipped).length >= 3) {
+            flashEffect("error", "Max 3 pets equipped", true);
+            return;
+        }
+        pet.equipped = true;
+    }
+    renderPetInventory();
+}
+function autoEquipBest() {
+    ownedPets.forEach(p => p.equipped = false);
+    let sorted = [...ownedPets].sort((a,b) => b.bonus - a.bonus);
+    for (let i = 0; i < Math.min(3, sorted.length); i++) sorted[i].equipped = true;
+    renderPetInventory();
+}
+function updatePetBonus() {
+    let totalBonus = ownedPets.filter(p=>p.equipped).reduce((sum,p)=>sum + p.bonus, 0);
+    // applied in addGas via globalMult? We'll integrate: store petBonus separately
+    window.petBonusMult = 1 + totalBonus;
+}
+// override addGas to use pet bonus
+const origAddGas = addGas;
+addGas = function(amount) {
+    let petMult = window.petBonusMult || 1;
+    let gain = amount * globalMult * petMult;
+    if (Math.random() < doubleChance) gain *= 2;
+    gas += gain;
+    updateZone();
+    updateUI();
+};
+window.addGas = addGas;
+
+// Leaderboard
 function loadLeaderboard() {
     let stored = localStorage.getItem("beanLeaderboard");
-    if (stored) leaderboard = JSON.parse(stored);
-    else leaderboard = [];
+    leaderboard = stored ? JSON.parse(stored) : [];
     renderLeaderboard();
 }
 function renderLeaderboard() {
@@ -259,33 +320,21 @@ function submitLeaderboardScore() {
     renderLeaderboard();
     flashEffect("leaderboard", "Score submitted!");
 }
-document.getElementById("submitScoreBtn").onclick = submitLeaderboardScore;
+function escapeHtml(str) { return str.replace(/[&<>]/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;'}[m]; }); }
 
 // Cutscene
 function playCutscene() {
     let overlay = document.getElementById("cutsceneOverlay");
     let textDiv = document.getElementById("cutsceneText");
     overlay.classList.remove("hidden");
-    textDiv.innerText = "🌀 You have reached The End...\nBut the simulation continues...\n✨ Endless worlds await ✨";
-    setTimeout(() => {
-        overlay.classList.add("hidden");
-    }, 5000);
+    textDiv.innerText = "🌀 You reached The End...\nBut the simulation continues...\n✨ Endless worlds await ✨";
+    setTimeout(() => { overlay.classList.add("hidden"); }, 5000);
 }
 
-// Flash effect helper
-function flashEffect(type, message, isError = false) {
-    let toast = document.createElement("div");
-    toast.className = "toast";
-    toast.innerText = message;
-    toast.style.background = isError ? "#a12222cc" : "#2a5a2acc";
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 2500);
-}
-
-// Save/Load
+// Save / Load
 function saveGame() {
     let save = { gas, clickPower, bots, botEfficiency, zoneIndex, prestigeLevel, globalMult, fracturePoints,
-                 clickCost, megaCost, botCost, turboCost, critCost, doubleCost, autoClickCost,
+                 upgradeCosts: upgradeData.map(u=>u.cost), ownedPets, equippedPets: ownedPets.filter(p=>p.equipped).map(p=>p.id),
                  critChance, doubleChance, autoClickActive };
     localStorage.setItem("beanEmpireSave", JSON.stringify(save));
 }
@@ -295,44 +344,46 @@ function loadGame() {
         let d = JSON.parse(raw);
         gas = d.gas ?? 0; clickPower = d.clickPower ?? 1; bots = d.bots ?? 0; botEfficiency = d.botEfficiency ?? 1;
         zoneIndex = d.zoneIndex ?? 0; prestigeLevel = d.prestigeLevel ?? 0; globalMult = d.globalMult ?? 1;
-        fracturePoints = d.fracturePoints ?? 0;
-        clickCost = d.clickCost ?? 50; megaCost = d.megaCost ?? 200; botCost = d.botCost ?? 120; turboCost = d.turboCost ?? 300;
-        critCost = d.critCost ?? 500; doubleCost = d.doubleCost ?? 800; autoClickCost = d.autoClickCost ?? 1000;
-        critChance = d.critChance ?? 0.05; doubleChance = d.doubleChance ?? 0; autoClickActive = d.autoClickActive ?? false;
-        if (autoClickActive && !autoClickInterval) {
-            autoClickInterval = setInterval(()=>{ addGas(clickPower); },1000);
-        }
+        fracturePoints = d.fracturePoints ?? 0; critChance = d.critChance ?? 0.05; doubleChance = d.doubleChance ?? 0;
+        autoClickActive = d.autoClickActive ?? false;
+        if (d.upgradeCosts) upgradeData.forEach((u,i)=> u.cost = d.upgradeCosts[i] || u.baseCost);
+        if (d.ownedPets) ownedPets = d.ownedPets;
+        if (autoClickActive && !autoClickInterval) autoClickInterval = setInterval(()=>{ addGas(clickPower); },1000);
+        renderUpgrades();
+        renderPetInventory();
         updateZone();
         updateUI();
     }
     setInterval(saveGame, 30000);
 }
 
-// Escape HTML
-function escapeHtml(str) {
-    return str.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-    });
+// Tabs
+function switchTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+    document.getElementById(`${tabId}Tab`).classList.remove('hidden');
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
 }
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.onclick = () => switchTab(btn.dataset.tab);
+});
 
 // Event binding
 document.getElementById("bean").addEventListener("click", clickBean);
-document.getElementById("upgradeClick").onclick = buyClick;
-document.getElementById("upgradeMega").onclick = buyMega;
-document.getElementById("buyBot").onclick = buyBot;
-document.getElementById("upgradeBot").onclick = buyTurbo;
-document.getElementById("upgradeCrit").onclick = buyCrit;
-document.getElementById("upgradeDouble").onclick = buyDouble;
-document.getElementById("upgradeAutoClick").onclick = buyAutoClick;
 document.getElementById("prestigeBtn").onclick = performPrestige;
+document.getElementById("openCrateBtn").onclick = openCrate;
+document.getElementById("autoEquipBtn").onclick = autoEquipBest;
+document.getElementById("submitScoreBtn").onclick = submitLeaderboardScore;
+document.getElementById("prevPageBtn").onclick = prevPage;
+document.getElementById("nextPageBtn").onclick = nextPage;
 
 // Startup
 loadGame();
 loadLeaderboard();
+renderUpgrades();
+renderPetInventory();
 updateUI();
+window.petBonusMult = 1;
 setInterval(() => { if (!document.hidden) triggerRandomEvent(); }, 75000);
 setInterval(() => { if (!document.hidden) addGas(bots * botEfficiency); }, 1000);
-flashEffect("welcome", "Bean Empire Awakened! Click the bean!", false);
+flashEffect("welcome", "Bean Empire Awakened! Click the bean.", false);
