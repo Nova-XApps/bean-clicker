@@ -22,6 +22,12 @@ let zoneIndex = 0;
 let cutscenePlaying = false;
 let gameLoop = null;
 
+// Upgrade cost multipliers (scalable)
+let powerUpgradeCost = 50;
+let megaUpgradeCost = 200;
+let autoBotCost = 120;
+let turboCost = 300;
+
 // DOM elements
 const gasEl = document.getElementById("gasCount");
 const powerEl = document.getElementById("powerValue");
@@ -31,6 +37,13 @@ const prodPerSecEl = document.getElementById("prodPerSec");
 const progressFill = document.getElementById("progressFill");
 const cutsceneDiv = document.getElementById("cutscene");
 const cutsceneText = document.getElementById("cutsceneText");
+const zoneMessageDiv = document.getElementById("zoneMessage");
+
+// Cost display spans
+const powerCostSpan = document.getElementById("powerCost");
+const megaCostSpan = document.getElementById("megaCost");
+const autoCostSpan = document.getElementById("autoCost");
+const turboCostSpan = document.getElementById("turboCost");
 
 // Helper: update UI and save
 function updateUI() {
@@ -42,21 +55,58 @@ function updateUI() {
     prodPerSecEl.textContent = totalProd;
     let progressPercent = (gas % 100) / 100 * 100;
     progressFill.style.width = `${progressPercent}%`;
+    
+    // Update displayed costs
+    powerCostSpan.textContent = powerUpgradeCost;
+    megaCostSpan.textContent = megaUpgradeCost;
+    autoCostSpan.textContent = autoBotCost;
+    turboCostSpan.textContent = turboCost;
+    
     saveGame();
 }
 
-// Zone advancement (triggers cutscene at final zone)
+// Zone change effect: background gradient, bean style, message
+function applyZoneEffects() {
+    const zoneNum = zoneIndex;
+    const totalZones = zones.length;
+    const progress = zoneNum / totalZones;
+    
+    // Dynamic background: from earthy brown to cosmic purple
+    const hueStart = 30; // brown/orange
+    const hueEnd = 280;  // purple
+    const hue = hueStart + (hueEnd - hueStart) * progress;
+    document.body.style.background = `radial-gradient(circle at 20% 30%, hsl(${hue}, 30%, 12%), hsl(${hue}, 40%, 5%))`;
+    
+    // Change bean emoji based on zone (fun effect)
+    const bean = document.getElementById("bean");
+    if (zoneNum < 5) bean.textContent = "🫘";
+    else if (zoneNum < 15) bean.textContent = "🌱";
+    else if (zoneNum < 25) bean.textContent = "🪐";
+    else if (zoneNum < 35) bean.textContent = "✨";
+    else bean.textContent = "🌀";
+    
+    // Show floating message
+    zoneMessageDiv.textContent = `✦ ${zones[zoneIndex]} ✦`;
+    zoneMessageDiv.classList.remove("hidden");
+    setTimeout(() => {
+        zoneMessageDiv.classList.add("hidden");
+    }, 2000);
+}
+
+// Zone advancement logic
 function recalcZone() {
     let newZone = Math.floor(gas / 100);
     if (newZone >= zones.length - 1 && zoneIndex !== zones.length - 1 && !cutscenePlaying) {
         zoneIndex = zones.length - 1;
         updateUI();
+        applyZoneEffects();
         triggerEndCutscene();
         return;
     }
     if (newZone > zoneIndex && newZone < zones.length) {
         zoneIndex = newZone;
         updateUI();
+        applyZoneEffects();
     } else if (zoneIndex === zones.length - 1) {
         if (zoneIndex !== zones.length - 1) zoneIndex = zones.length - 1;
         updateUI();
@@ -65,7 +115,6 @@ function recalcZone() {
     }
 }
 
-// Add gas (main resource)
 function addGas(amount) {
     if (cutscenePlaying) return;
     gas += amount;
@@ -75,13 +124,14 @@ function addGas(amount) {
     saveGame();
 }
 
-// Upgrade functions
+// ---------- SCALABLE UPGRADES ----------
 function buyPowerUpgrade() {
     if (cutscenePlaying) return false;
-    const cost = 50;
-    if (gas >= cost) {
-        gas -= cost;
+    if (gas >= powerUpgradeCost) {
+        gas -= powerUpgradeCost;
         power++;
+        // Increase cost by 20% (scalable)
+        powerUpgradeCost = Math.floor(powerUpgradeCost * 1.2);
         updateUI();
         recalcZone();
         return true;
@@ -91,10 +141,10 @@ function buyPowerUpgrade() {
 
 function buyMegaPower() {
     if (cutscenePlaying) return false;
-    const cost = 200;
-    if (gas >= cost) {
-        gas -= cost;
+    if (gas >= megaUpgradeCost) {
+        gas -= megaUpgradeCost;
         power += 5;
+        megaUpgradeCost = Math.floor(megaUpgradeCost * 1.25);
         updateUI();
         recalcZone();
         return true;
@@ -104,10 +154,10 @@ function buyMegaPower() {
 
 function buyAutoBot() {
     if (cutscenePlaying) return false;
-    const cost = 120;
-    if (gas >= cost) {
-        gas -= cost;
+    if (gas >= autoBotCost) {
+        gas -= autoBotCost;
         autoCount++;
+        autoBotCost = Math.floor(autoBotCost * 1.15);
         updateUI();
         recalcZone();
         return true;
@@ -117,10 +167,10 @@ function buyAutoBot() {
 
 function upgradeAutoEfficiency() {
     if (cutscenePlaying) return false;
-    const cost = 300;
-    if (gas >= cost) {
-        gas -= cost;
+    if (gas >= turboCost) {
+        gas -= turboCost;
         autoGasPerSec++;
+        turboCost = Math.floor(turboCost * 1.2);
         updateUI();
         recalcZone();
         return true;
@@ -128,7 +178,7 @@ function upgradeAutoEfficiency() {
     return false;
 }
 
-// Final cutscene
+// ---------- FINAL CUTSCENE ----------
 async function triggerEndCutscene() {
     if (cutscenePlaying) return;
     cutscenePlaying = true;
@@ -149,6 +199,7 @@ async function triggerEndCutscene() {
     autoGasPerSec += 2;
     zoneIndex = zones.length - 1;
     updateUI();
+    applyZoneEffects();
     cutsceneText.textContent = "⚡ THE BEYOND ACCEPTS YOU ⚡";
     await wait(1800);
     cutsceneDiv.classList.add("hidden");
@@ -161,7 +212,7 @@ function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// Auto-production every second
+// Auto-production loop
 function startProduction() {
     if (gameLoop) clearInterval(gameLoop);
     gameLoop = setInterval(() => {
@@ -177,14 +228,11 @@ function startProduction() {
     }, 1000);
 }
 
-// Save & Load (localStorage)
+// Save & Load
 function saveGame() {
     const saveData = {
-        gas: gas,
-        power: power,
-        zoneIndex: zoneIndex,
-        autoCount: autoCount,
-        autoGasPerSec: autoGasPerSec
+        gas, power, zoneIndex, autoCount, autoGasPerSec,
+        powerUpgradeCost, megaUpgradeCost, autoBotCost, turboCost
     };
     localStorage.setItem("beanAscensionSave", JSON.stringify(saveData));
 }
@@ -199,28 +247,41 @@ function loadGame() {
             zoneIndex = data.zoneIndex ?? 0;
             autoCount = data.autoCount ?? 0;
             autoGasPerSec = data.autoGasPerSec ?? 1;
+            powerUpgradeCost = data.powerUpgradeCost ?? 50;
+            megaUpgradeCost = data.megaUpgradeCost ?? 200;
+            autoBotCost = data.autoBotCost ?? 120;
+            turboCost = data.turboCost ?? 300;
             if (zoneIndex >= zones.length) zoneIndex = zones.length - 1;
             updateUI();
             recalcZone();
+            applyZoneEffects();
         } catch(e) { console.warn(e); }
     } else {
-        gas = 0;
-        power = 1;
-        zoneIndex = 0;
-        autoCount = 0;
-        autoGasPerSec = 1;
-        updateUI();
+        resetGame();
     }
     if (zoneIndex === zones.length - 1 && !localStorage.getItem("beanCutsceneDone")) {
         localStorage.setItem("beanCutsceneDone", "true");
     }
 }
 
-// Click handler with critical hit and visual feedback
+function resetGame() {
+    gas = 0;
+    power = 1;
+    zoneIndex = 0;
+    autoCount = 0;
+    autoGasPerSec = 1;
+    powerUpgradeCost = 50;
+    megaUpgradeCost = 200;
+    autoBotCost = 120;
+    turboCost = 300;
+    updateUI();
+    applyZoneEffects();
+}
+
+// Click handler
 function clickBeanHandler(e) {
     if (cutscenePlaying) return;
     let gain = power;
-    // 12% chance for critical hit (2.5x power)
     if (Math.random() < 0.12) {
         gain = Math.floor(power * 2.5);
         const bean = document.getElementById("bean");
@@ -228,34 +289,28 @@ function clickBeanHandler(e) {
         setTimeout(() => { if(bean) bean.style.transform = ""; }, 100);
     }
     addGas(gain);
-    // Squash effect
     e.currentTarget.style.transform = "scale(0.95)";
     setTimeout(() => {
         if(e.currentTarget) e.currentTarget.style.transform = "";
     }, 80);
 }
 
-// Bind all event listeners (crucial for clickable bean)
+// Bind events
 function bindEvents() {
     const bean = document.getElementById("bean");
-    if (bean) {
-        bean.addEventListener("click", clickBeanHandler);
-        console.log("Bean click listener attached successfully!");
-    } else {
-        console.error("Bean element not found!");
-    }
-    
+    if (bean) bean.addEventListener("click", clickBeanHandler);
     document.getElementById("upgradePower").onclick = () => buyPowerUpgrade();
     document.getElementById("upgradeMega").onclick = () => buyMegaPower();
     document.getElementById("buyAuto").onclick = () => buyAutoBot();
     document.getElementById("upgradeAuto").onclick = () => upgradeAutoEfficiency();
 }
 
-// Initialize game when DOM is fully loaded
+// Initialize
 window.addEventListener("DOMContentLoaded", () => {
     loadGame();
     bindEvents();
     startProduction();
     updateUI();
-    console.log("Bean Ascension ready – click the giant bean!");
+    applyZoneEffects();
+    console.log("Bean Ascension ready – scalable upgrades & zone changes!");
 });
