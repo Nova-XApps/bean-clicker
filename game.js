@@ -32,7 +32,7 @@ const progressFill = document.getElementById("progressFill");
 const cutsceneDiv = document.getElementById("cutscene");
 const cutsceneText = document.getElementById("cutsceneText");
 
-// ---------- Helper: Update UI & Save ----------
+// Helper: update UI and save
 function updateUI() {
     gasEl.textContent = Math.floor(gas);
     powerEl.textContent = power;
@@ -45,10 +45,9 @@ function updateUI() {
     saveGame();
 }
 
-// ---------- Zone advancement (triggers cutscene at final zone) ----------
+// Zone advancement (triggers cutscene at final zone)
 function recalcZone() {
     let newZone = Math.floor(gas / 100);
-    // If reached final zone for first time
     if (newZone >= zones.length - 1 && zoneIndex !== zones.length - 1 && !cutscenePlaying) {
         zoneIndex = zones.length - 1;
         updateUI();
@@ -66,7 +65,7 @@ function recalcZone() {
     }
 }
 
-// ---------- Add gas (main resource) ----------
+// Add gas (main resource)
 function addGas(amount) {
     if (cutscenePlaying) return;
     gas += amount;
@@ -76,7 +75,7 @@ function addGas(amount) {
     saveGame();
 }
 
-// ---------- Upgrades ----------
+// Upgrade functions
 function buyPowerUpgrade() {
     if (cutscenePlaying) return false;
     const cost = 50;
@@ -129,12 +128,11 @@ function upgradeAutoEfficiency() {
     return false;
 }
 
-// ---------- Epic Final Cutscene ----------
+// Final cutscene
 async function triggerEndCutscene() {
     if (cutscenePlaying) return;
     cutscenePlaying = true;
     cutsceneDiv.classList.remove("hidden");
-    
     const messages = [
         "✨ Congratulations... you reached the end. ✨",
         "🌌 ...or so you think. 🌌",
@@ -145,7 +143,6 @@ async function triggerEndCutscene() {
         cutsceneText.textContent = msg;
         await wait(2800);
     }
-    // Massive reward
     gas += 1000;
     power += 10;
     autoCount += 3;
@@ -164,7 +161,7 @@ function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// ---------- Auto-production (every second) ----------
+// Auto-production every second
 function startProduction() {
     if (gameLoop) clearInterval(gameLoop);
     gameLoop = setInterval(() => {
@@ -180,7 +177,7 @@ function startProduction() {
     }, 1000);
 }
 
-// ---------- Save & Load (localStorage) ----------
+// Save & Load (localStorage)
 function saveGame() {
     const saveData = {
         gas: gas,
@@ -214,14 +211,13 @@ function loadGame() {
         autoGasPerSec = 1;
         updateUI();
     }
-    // Avoid replaying cutscene on load if already at final zone
     if (zoneIndex === zones.length - 1 && !localStorage.getItem("beanCutsceneDone")) {
         localStorage.setItem("beanCutsceneDone", "true");
     }
 }
 
-// ---------- Click handler with random critical hit ----------
-function clickBeanHandler() {
+// Click handler with critical hit and visual feedback
+function clickBeanHandler(e) {
     if (cutscenePlaying) return;
     let gain = power;
     // 12% chance for critical hit (2.5x power)
@@ -232,21 +228,34 @@ function clickBeanHandler() {
         setTimeout(() => { if(bean) bean.style.transform = ""; }, 100);
     }
     addGas(gain);
+    // Squash effect
+    e.currentTarget.style.transform = "scale(0.95)";
+    setTimeout(() => {
+        if(e.currentTarget) e.currentTarget.style.transform = "";
+    }, 80);
 }
 
-// ---------- Event Binding ----------
+// Bind all event listeners (crucial for clickable bean)
 function bindEvents() {
-    document.getElementById("bean").onclick = clickBeanHandler;
+    const bean = document.getElementById("bean");
+    if (bean) {
+        bean.addEventListener("click", clickBeanHandler);
+        console.log("Bean click listener attached successfully!");
+    } else {
+        console.error("Bean element not found!");
+    }
+    
     document.getElementById("upgradePower").onclick = () => buyPowerUpgrade();
     document.getElementById("upgradeMega").onclick = () => buyMegaPower();
     document.getElementById("buyAuto").onclick = () => buyAutoBot();
     document.getElementById("upgradeAuto").onclick = () => upgradeAutoEfficiency();
 }
 
-// ---------- Initialize Game ----------
+// Initialize game when DOM is fully loaded
 window.addEventListener("DOMContentLoaded", () => {
     loadGame();
     bindEvents();
     startProduction();
     updateUI();
+    console.log("Bean Ascension ready – click the giant bean!");
 });
