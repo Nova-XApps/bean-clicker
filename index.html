@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Bean Empire – Fully Working</title>
+    <title>Bean Empire – No Waste, Infinite Progression</title>
     <style>
-        /* ========== STYLES ========== */
         * { user-select: none; box-sizing: border-box; margin: 0; padding: 0; }
         body {
             background: radial-gradient(circle at 20% 30%, #0a0f1a, #020408);
@@ -88,7 +87,6 @@
 </head>
 <body>
 <div class="game-container">
-    <!-- LEFT PANEL -->
     <div class="left-panel">
         <div class="bean-card">
             <div class="bean" id="bean">🫘</div>
@@ -105,14 +103,13 @@
             <div class="stat"><label>🧬 Prestige</label><span id="prestigeLv">0</span></div>
         </div>
         <div class="zone-area">
-            <div class="progress-label">Next world: <span id="nextZoneGas">100</span> gas</div>
+            <div class="progress-label">Next world at: <span id="nextZoneGas">100</span> total gas</div>
             <div class="progress-bar"><div id="zoneFill" class="fill"></div></div>
         </div>
         <div id="eventMessage" class="event-toast">✨ Events appear here ✨</div>
         <div id="bossAlert" class="boss-alert hidden" onclick="defeatBoss()">⚠️ BOSS ACTIVE ⚠️</div>
     </div>
 
-    <!-- RIGHT PANEL -->
     <div class="right-panel">
         <div class="tab-bar">
             <button class="tab-btn active" data-tab="upgrades" onclick="switchTab('upgrades')">⚡ Upgrades</button>
@@ -131,7 +128,7 @@
                 <div class="upgrade" onclick="performPrestige()">
                     <span>🌀 Quantum Leap</span>
                     <span class="cost" id="prestigeReq">Reach last world</span>
-                    <div class="desc">Reset for Fracture & permanent boost</div>
+                    <div class="desc">Reset progress, gain Fracture & permanent multiplier</div>
                 </div>
             </div>
         </div>
@@ -163,7 +160,7 @@
 </div>
 
 <script>
-    // ========== GAME DATA ==========
+    // ========== ZONES (no gas waste) ==========
     const baseZones = [
         "Seed Patch","Bean Field","Forest Floor","Forest Canopy","Backyard",
         "Main Street","City Skyline","Skyscraper Roof","Cloud Bridge","Cloud Layer",
@@ -186,11 +183,11 @@
     ];
     const allZones = [...baseZones, ...postZones];
 
+    // Game state – gas NEVER decreases; zone index determined by total gas
     let gas = 0;
     let clickPower = 1;
     let bots = 0;
     let botEfficiency = 1;
-    let zoneIndex = 0;
     let prestigeLevel = 0;
     let globalMult = 1.0;
     let fracturePoints = 0;
@@ -202,6 +199,7 @@
     let autoClickInterval = null;
     let petBonusMult = 1;
 
+    // Upgrade data (scalable costs)
     let upgradeData = [
         { id: "click", name: "💨 Stronger Farts", baseCost: 50, cost: 50, effect: () => clickPower++, desc: "+1 click power", multiplier: 1.2 },
         { id: "mega", name: "✨ Mega Burst", baseCost: 200, cost: 200, effect: () => clickPower += 5, desc: "+5 click power", multiplier: 1.25 },
@@ -214,13 +212,16 @@
     let currentPage = 1;
     let totalPages = Math.ceil(upgradeData.length / 4);
 
+    // Pets
     const petRarities = ["Common","Rare","Epic","Legendary","Ultimate"];
     const petBonuses = [0.005, 0.02, 0.08, 0.15, 0.3];
     const petNames = ["Sprout","Beanling","Cosmic Pup","Void Bunny","Elder Bean","Golden Sprout","Nebula Cat"];
     let ownedPets = [];
+
+    // Leaderboard
     let leaderboard = [];
 
-    // DOM refs
+    // DOM references
     const gasSpan = document.getElementById("gasValue");
     const powerSpan = document.getElementById("powerValue");
     const worldSpan = document.getElementById("worldName");
@@ -234,48 +235,68 @@
     const comboDisplay = document.getElementById("comboDisplay");
     const bossAlert = document.getElementById("bossAlert");
 
-    function getRequiredGas() { return Math.min(100 + zoneIndex * 8, 500); }
-
-    function updateUI() {
-        gasSpan.innerText = Math.floor(gas);
-        powerSpan.innerText = clickPower;
-        worldSpan.innerText = allZones[zoneIndex] || "Infinity";
-        botSpan.innerText = bots;
-        prodSpan.innerText = Math.floor(bots * botEfficiency * globalMult);
-        fractureSpan.innerText = fracturePoints;
-        prestigeSpan.innerText = prestigeLevel;
-        let req = getRequiredGas();
-        zoneFill.style.width = `${(gas % req) / req * 100}%`;
-        nextZoneSpan.innerText = req;
-        saveGame();
+    // ========== ZONE PROGRESSION (no gas subtraction) ==========
+    function getZoneIndex() {
+        // returns the highest zone index where gas >= threshold(zone)
+        for (let i = allZones.length-1; i >= 0; i--) {
+            let threshold = getThresholdForZone(i);
+            if (gas >= threshold) return i;
+        }
+        return 0;
     }
 
-    function updateZone() {
-        let req = getRequiredGas();
-        if (gas >= req && zoneIndex < allZones.length - 1) {
-            gas -= req;
-            zoneIndex++;
-            flashToast(`🌍 Reached ${allZones[zoneIndex]}!`);
-            if (zoneIndex === baseZones.length - 1) playCutscene();
-            if (zoneIndex >= baseZones.length) { fracturePoints++; flashToast("+1 Fracture Point!"); }
-            updateUI();
-            updateZone(); // cascade
-        } else updateUI();
+    function getThresholdForZone(zoneIdx) {
+        // scalable: first zone (0) requires 0 gas, then 100, 200, 300...
+        // but we want zone 1 (index 1) at 100 gas, zone 2 at 200, etc.
+        // Using formula: zoneIdx * 100 (but you can change)
+        return zoneIdx * 100;
     }
 
+    let currentZoneIndex = 0;
+    function updateZoneDisplay() {
+        let newZone = getZoneIndex();
+        if (newZone > currentZoneIndex) {
+            currentZoneIndex = newZone;
+            flashToast(`🌍 Reached ${allZones[currentZoneIndex]}!`);
+            if (currentZoneIndex === baseZones.length - 1) playCutscene();
+            if (currentZoneIndex >= baseZones.length) { fracturePoints++; flashToast("+1 Fracture Point!"); }
+        }
+        worldSpan.innerText = allZones[currentZoneIndex] || "Infinity";
+        let nextThreshold = getThresholdForZone(currentZoneIndex+1);
+        nextZoneSpan.innerText = nextThreshold;
+        let progress = (gas / nextThreshold) * 100;
+        if (nextThreshold === 0) progress = 100;
+        zoneFill.style.width = `${Math.min(100, progress)}%`;
+    }
+
+    // Core resource addition (gas never decreases)
     function addGas(amount) {
         let gain = amount * globalMult * petBonusMult;
         if (Math.random() < doubleChance) gain *= 2;
         gas += gain;
-        updateZone();
+        updateZoneDisplay();
         updateUI();
     }
 
+    // UI update (does not affect gas)
+    function updateUI() {
+        gasSpan.innerText = Math.floor(gas);
+        powerSpan.innerText = clickPower;
+        botSpan.innerText = bots;
+        prodSpan.innerText = Math.floor(bots * botEfficiency * globalMult);
+        fractureSpan.innerText = fracturePoints;
+        prestigeSpan.innerText = prestigeLevel;
+        updateZoneDisplay();
+        saveGame();
+    }
+
+    // Start auto production
     function startAutoProd() {
         if (window.prodInterval) clearInterval(window.prodInterval);
         window.prodInterval = setInterval(() => addGas(bots * botEfficiency), 1000);
     }
 
+    // Combo & Click
     function incrementCombo() {
         if (comboTimeout) clearTimeout(comboTimeout);
         combo++;
@@ -294,6 +315,7 @@
         setTimeout(() => bean.style.transform = "", 80);
     }
 
+    // Upgrade rendering
     function renderUpgrades() {
         const container = document.getElementById("upgradeList");
         if (!container) return;
@@ -308,13 +330,16 @@
         `).join("");
         document.getElementById("pageNum").innerText = currentPage;
         document.getElementById("totalPages").innerText = totalPages;
-        document.getElementById("prevPageBtn").disabled = currentPage === 1;
-        document.getElementById("nextPageBtn").disabled = currentPage === totalPages;
+        let prevBtn = document.querySelector("#upgradesTab .upgrade-header button:first-child");
+        let nextBtn = document.querySelector("#upgradesTab .upgrade-header button:last-child");
+        if (prevBtn) prevBtn.disabled = currentPage === 1;
+        if (nextBtn) nextBtn.disabled = currentPage === totalPages;
     }
+
     function buyUpgrade(id) {
         const up = upgradeData.find(u => u.id === id);
         if (gas >= up.cost) {
-            gas -= up.cost;
+            gas -= up.cost;   // gas is only spent on upgrades, not on zones
             up.effect();
             up.cost = Math.floor(up.cost * up.multiplier);
             renderUpgrades();
@@ -322,25 +347,36 @@
             flashToast(`Bought ${up.name}`);
         } else flashToast("Not enough gas!");
     }
+
     function nextPage() { if (currentPage < totalPages) { currentPage++; renderUpgrades(); } }
     function prevPage() { if (currentPage > 1) { currentPage--; renderUpgrades(); } }
 
+    // Prestige – resets progress but keeps global multiplier and Fracture
     function performPrestige() {
-        if (zoneIndex < baseZones.length - 1) { flashToast("Reach 'The End...' first!"); return; }
+        if (currentZoneIndex < baseZones.length - 1) { flashToast("Reach 'The End...' first!"); return; }
         let gained = 5 + Math.floor(gas / 1000);
         fracturePoints += gained;
         prestigeLevel++;
         globalMult = 1 + prestigeLevel * 0.2;
-        gas = 0; clickPower = 1; bots = 0; botEfficiency = 1; zoneIndex = 0;
+        // Reset everything except prestige, fracture, globalMult
+        gas = 0;
+        clickPower = 1;
+        bots = 0;
+        botEfficiency = 1;
+        currentZoneIndex = 0;
         upgradeData.forEach(u => u.cost = u.baseCost);
         if (autoClickInterval) clearInterval(autoClickInterval);
         autoClickActive = false;
-        critChance = 0.05; doubleChance = 0;
-        updateZone(); updateUI(); renderUpgrades();
+        critChance = 0.05;
+        doubleChance = 0;
+        updateZoneDisplay();
+        updateUI();
+        renderUpgrades();
         flashToast(`Prestige Lv ${prestigeLevel} | +${gained} Fracture!`);
         submitLeaderboardScore();
     }
 
+    // Random events
     const events = [
         { name:"🌱 Bean Rain", act:()=>{ addGas(100); return "+100 gas!"; } },
         { name:"✨ Golden Bean", act:()=>{ addGas(clickPower*40); return `+${clickPower*40} gas!`; } },
@@ -356,9 +392,10 @@
         updateUI();
     }
 
+    // Boss system
     let activeBoss = null;
     function trySpawnBoss() {
-        if (zoneIndex < 15 || activeBoss) return;
+        if (currentZoneIndex < 15 || activeBoss) return;
         if (Math.random() < 0.2) {
             activeBoss = { name:"🐉 Lag Entity", resolveCost:5 };
             globalMult *= 0.8;
@@ -380,6 +417,7 @@
     setInterval(trySpawnBoss, 90000);
     window.defeatBoss = defeatBoss;
 
+    // Pets & Crates
     function getRandomPet() {
         let roll = Math.random();
         let idx = roll<0.5 ? 0 : roll<0.75 ? 1 : roll<0.9 ? 2 : roll<0.98 ? 3 : 4;
@@ -430,6 +468,7 @@
         petBonusMult = 1 + total;
     }
 
+    // Leaderboard
     function loadLeaderboard() {
         let stored = localStorage.getItem("beanLeaderboard");
         leaderboard = stored ? JSON.parse(stored) : [];
@@ -453,6 +492,7 @@
     }
     function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
 
+    // Cutscene
     function playCutscene() {
         let overlay = document.getElementById("cutsceneOverlay");
         let textDiv = document.getElementById("cutsceneText");
@@ -461,8 +501,9 @@
         setTimeout(()=> overlay.classList.add("hidden"), 5000);
     }
 
+    // Save / Load
     function saveGame() {
-        let save = { gas, clickPower, bots, botEfficiency, zoneIndex, prestigeLevel, globalMult, fracturePoints,
+        let save = { gas, clickPower, bots, botEfficiency, prestigeLevel, globalMult, fracturePoints,
                      upgradeCosts: upgradeData.map(u=>u.cost), ownedPets, critChance, doubleChance, autoClickActive };
         localStorage.setItem("beanEmpireSave", JSON.stringify(save));
     }
@@ -471,20 +512,21 @@
         if (raw) {
             let d = JSON.parse(raw);
             gas = d.gas??0; clickPower = d.clickPower??1; bots = d.bots??0; botEfficiency = d.botEfficiency??1;
-            zoneIndex = d.zoneIndex??0; prestigeLevel = d.prestigeLevel??0; globalMult = d.globalMult??1;
-            fracturePoints = d.fracturePoints??0; critChance = d.critChance??0.05; doubleChance = d.doubleChance??0;
+            prestigeLevel = d.prestigeLevel??0; globalMult = d.globalMult??1; fracturePoints = d.fracturePoints??0;
+            critChance = d.critChance??0.05; doubleChance = d.doubleChance??0;
             autoClickActive = d.autoClickActive??false;
             if (d.upgradeCosts) upgradeData.forEach((u,i)=> u.cost = d.upgradeCosts[i]??u.baseCost);
             if (d.ownedPets) ownedPets = d.ownedPets;
             if (autoClickActive && !autoClickInterval) autoClickInterval = setInterval(()=> addGas(clickPower), 1000);
             renderUpgrades();
             renderPetInventory();
-            updateZone();
+            updateZoneDisplay();
             updateUI();
         }
         setInterval(saveGame, 30000);
     }
 
+    // Tabs
     function switchTab(tabId) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
         document.getElementById(`${tabId}Tab`).classList.remove('hidden');
@@ -514,17 +556,20 @@
     window.defeatBoss = defeatBoss;
     window.switchTab = switchTab;
 
+    // Attach bean click
     document.getElementById("bean").onclick = clickBean;
 
+    // Initialization
     loadGame();
     loadLeaderboard();
     renderUpgrades();
     renderPetInventory();
+    updateZoneDisplay();
     updateUI();
     updatePetBonus();
     startAutoProd();
     setInterval(()=> triggerRandomEvent(), 75000);
-    flashToast("Bean Empire Awakened! Click the bean.", false);
+    flashToast("Bean Empire Awakened! Gas never wasted. Click the bean.", false);
 </script>
 </body>
 </html>
