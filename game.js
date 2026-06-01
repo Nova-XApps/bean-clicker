@@ -1,4 +1,4 @@
-// ---------- ZONES (the full journey) ----------
+// ---------- ZONES (full journey) ----------
 const zones = [
     "Seed Patch","Bean Field","Forest Floor","Forest Canopy","Backyard",
     "Main Street","City Skyline","Skyscraper Roof","Cloud Bridge","Cloud Layer",
@@ -20,40 +20,35 @@ let autoCount = 0;
 let autoGasPerSec = 1;
 let zoneIndex = 0;
 let cutscenePlaying = false;
-let gameInterval = null;
+let gameLoop = null;
 
 // DOM elements
-const gasEl = document.getElementById("gas");
-const powerEl = document.getElementById("power");
-const zoneEl = document.getElementById("zone");
-const autoCountEl = document.getElementById("autoCount");
-const autoPerSecEl = document.getElementById("autoPerSec");
-const zoneFill = document.getElementById("zoneFill");
-const cutsceneDiv = document.getElementById("cutsceneOverlay");
-const cutsceneMsgSpan = document.getElementById("cutsceneMsg");
+const gasEl = document.getElementById("gasCount");
+const powerEl = document.getElementById("powerValue");
+const zoneEl = document.getElementById("zoneName");
+const botCountEl = document.getElementById("botCount");
+const prodPerSecEl = document.getElementById("prodPerSec");
+const progressFill = document.getElementById("progressFill");
+const cutsceneDiv = document.getElementById("cutscene");
+const cutsceneText = document.getElementById("cutsceneText");
 
-// Live player counters (simulated)
-let currentPlayersOnline = 3;
-let totalPlayersAllTime = 0;
-const currentPlayersEl = document.getElementById("currentPlayers");
-const totalPlayersAllTimeEl = document.getElementById("totalPlayersAllTime");
-
-// Helper: update all UI + save
+// ---------- Helper: Update UI & Save ----------
 function updateUI() {
     gasEl.textContent = Math.floor(gas);
     powerEl.textContent = power;
     zoneEl.textContent = zones[zoneIndex];
-    autoCountEl.textContent = autoCount;
-    let totalAutoProd = autoCount * autoGasPerSec;
-    autoPerSecEl.textContent = totalAutoProd;
+    botCountEl.textContent = autoCount;
+    let totalProd = autoCount * autoGasPerSec;
+    prodPerSecEl.textContent = totalProd;
     let progressPercent = (gas % 100) / 100 * 100;
-    zoneFill.style.width = `${progressPercent}%`;
+    progressFill.style.width = `${progressPercent}%`;
     saveGame();
 }
 
-// Zone advancement logic (triggers cutscene when reaching final zone first time)
+// ---------- Zone advancement (triggers cutscene at final zone) ----------
 function recalcZone() {
     let newZone = Math.floor(gas / 100);
+    // If reached final zone for first time
     if (newZone >= zones.length - 1 && zoneIndex !== zones.length - 1 && !cutscenePlaying) {
         zoneIndex = zones.length - 1;
         updateUI();
@@ -71,7 +66,7 @@ function recalcZone() {
     }
 }
 
-// Add gas (main resource)
+// ---------- Add gas (main resource) ----------
 function addGas(amount) {
     if (cutscenePlaying) return;
     gas += amount;
@@ -81,7 +76,7 @@ function addGas(amount) {
     saveGame();
 }
 
-// Upgrades
+// ---------- Upgrades ----------
 function buyPowerUpgrade() {
     if (cutscenePlaying) return false;
     const cost = 50;
@@ -134,18 +129,11 @@ function upgradeAutoEfficiency() {
     return false;
 }
 
-// Epic final cutscene
+// ---------- Epic Final Cutscene ----------
 async function triggerEndCutscene() {
     if (cutscenePlaying) return;
     cutscenePlaying = true;
-    cutsceneDiv.style.display = "flex";
-    // Disable interactive elements
-    document.getElementById("beanBtn").disabled = true;
-    const btns = ["upgradePowerBtn","megaPowerBtn","autoBuyBtn","autoUpgradeBtn"];
-    btns.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.pointerEvents = "none";
-    });
+    cutsceneDiv.classList.remove("hidden");
     
     const messages = [
         "✨ Congratulations... you reached the end. ✨",
@@ -154,38 +142,32 @@ async function triggerEndCutscene() {
         "🌀 The Void has awakened. The cosmos shivers. 🌀"
     ];
     for (let msg of messages) {
-        cutsceneMsgSpan.textContent = msg;
+        cutsceneText.textContent = msg;
         await wait(2800);
     }
-    // Transcendent reward
+    // Massive reward
     gas += 1000;
     power += 10;
     autoCount += 3;
     autoGasPerSec += 2;
     zoneIndex = zones.length - 1;
     updateUI();
-    cutsceneMsgSpan.textContent = "⚡ THE BEYOND ACCEPTS YOU ⚡";
+    cutsceneText.textContent = "⚡ THE BEYOND ACCEPTS YOU ⚡";
     await wait(1800);
-    cutsceneDiv.style.display = "none";
+    cutsceneDiv.classList.add("hidden");
     cutscenePlaying = false;
-    document.getElementById("beanBtn").disabled = false;
-    btns.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.pointerEvents = "auto";
-    });
     saveGame();
     localStorage.setItem("beanCutsceneDone", "true");
-    updateUI();
 }
 
 function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// Auto-production loop (every second)
+// ---------- Auto-production (every second) ----------
 function startProduction() {
-    if (gameInterval) clearInterval(gameInterval);
-    gameInterval = setInterval(() => {
+    if (gameLoop) clearInterval(gameLoop);
+    gameLoop = setInterval(() => {
         if (!cutscenePlaying) {
             let production = autoCount * autoGasPerSec;
             if (production > 0) {
@@ -198,7 +180,7 @@ function startProduction() {
     }, 1000);
 }
 
-// Save & Load (localStorage)
+// ---------- Save & Load (localStorage) ----------
 function saveGame() {
     const saveData = {
         gas: gas,
@@ -238,63 +220,33 @@ function loadGame() {
     }
 }
 
-// Live player counters (updates every 10 seconds)
-function initLiveCounters() {
-    let storedTotal = localStorage.getItem("beanTotalPlayersAllTime");
-    if (storedTotal && !isNaN(parseInt(storedTotal))) {
-        totalPlayersAllTime = parseInt(storedTotal);
-    } else {
-        totalPlayersAllTime = 874;
-    }
-    currentPlayersOnline = Math.floor(Math.random() * 15) + 4;
-    updateLiveDisplay();
-
-    setInterval(() => {
-        if (!cutscenePlaying) {
-            let deltaCurrent = Math.floor(Math.random() * 7) - 2;
-            currentPlayersOnline += deltaCurrent;
-            if (currentPlayersOnline < 2) currentPlayersOnline = 2;
-            if (currentPlayersOnline > 42) currentPlayersOnline = 42;
-            let newMasters = Math.floor(Math.random() * 7) + 1;
-            totalPlayersAllTime += newMasters;
-            localStorage.setItem("beanTotalPlayersAllTime", totalPlayersAllTime);
-            updateLiveDisplay();
-        }
-    }, 10000);
-}
-
-function updateLiveDisplay() {
-    currentPlayersEl.textContent = currentPlayersOnline;
-    totalPlayersAllTimeEl.textContent = totalPlayersAllTime.toLocaleString();
-}
-
-// Click handler with critical hit chance
+// ---------- Click handler with random critical hit ----------
 function clickBeanHandler() {
     if (cutscenePlaying) return;
     let gain = power;
+    // 12% chance for critical hit (2.5x power)
     if (Math.random() < 0.12) {
         gain = Math.floor(power * 2.5);
-        const beanBtn = document.getElementById("beanBtn");
-        beanBtn.style.transform = "scale(0.96)";
-        setTimeout(() => { if(beanBtn) beanBtn.style.transform = ""; }, 100);
+        const bean = document.getElementById("bean");
+        bean.style.transform = "scale(0.9)";
+        setTimeout(() => { if(bean) bean.style.transform = ""; }, 100);
     }
     addGas(gain);
 }
 
-// Bind event listeners
+// ---------- Event Binding ----------
 function bindEvents() {
-    document.getElementById("beanBtn").onclick = clickBeanHandler;
-    document.getElementById("upgradePowerBtn").onclick = () => { buyPowerUpgrade(); updateUI(); };
-    document.getElementById("megaPowerBtn").onclick = () => { buyMegaPower(); updateUI(); };
-    document.getElementById("autoBuyBtn").onclick = () => { buyAutoBot(); updateUI(); };
-    document.getElementById("autoUpgradeBtn").onclick = () => { upgradeAutoEfficiency(); updateUI(); };
+    document.getElementById("bean").onclick = clickBeanHandler;
+    document.getElementById("upgradePower").onclick = () => buyPowerUpgrade();
+    document.getElementById("upgradeMega").onclick = () => buyMegaPower();
+    document.getElementById("buyAuto").onclick = () => buyAutoBot();
+    document.getElementById("upgradeAuto").onclick = () => upgradeAutoEfficiency();
 }
 
-// Initialize everything when DOM is ready
+// ---------- Initialize Game ----------
 window.addEventListener("DOMContentLoaded", () => {
     loadGame();
     bindEvents();
     startProduction();
-    initLiveCounters();
     updateUI();
 });
