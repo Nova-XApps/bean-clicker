@@ -3,68 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Bean Ascension – Scalable Upgrades & Zones</title>
+    <title>Bean Empire · Infinite Idle Clicker</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="gameWrapper">
-    <div id="leftColumn">
-        <div id="cookieArea">
-            <div id="bean" class="bean">🫘</div>
-            <div id="clickHint">⬅️ click the bean ➡️</div>
+    <div class="game-container">
+        <!-- Left Column: Bean & Core Stats -->
+        <div class="main-panel">
+            <div class="bean-card">
+                <div class="bean" id="bean">🫘</div>
+                <div class="click-hint">Click the Bean</div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat"><span class="label">💨 Gas</span><span id="gasValue" class="value">0</span></div>
+                <div class="stat"><span class="label">⚡ Click Power</span><span id="powerValue" class="value">1</span></div>
+                <div class="stat"><span class="label">🌌 Zone</span><span id="zoneName" class="value">Seed Patch</span></div>
+                <div class="stat"><span class="label">🤖 Bots</span><span id="botCount" class="value">0</span></div>
+                <div class="stat"><span class="label">⚙️ Gas/sec</span><span id="prodValue" class="value">0</span></div>
+                <div class="stat"><span class="label">🌀 Fracture</span><span id="fracturePoints" class="value">0</span></div>
+                <div class="stat"><span class="label">🧬 Layer</span><span id="layerNum" class="value">0</span></div>
+                <div class="stat"><span class="label">🐾 Pet Bonus</span><span id="petBonusValue" class="value">0%</span></div>
+            </div>
+            <div class="zone-progress">
+                <div class="progress-label">Next zone at +100 gas</div>
+                <div class="progress-bar"><div id="zoneFill" class="fill"></div></div>
+            </div>
+            <div id="eventLog" class="event-log">✨ Events will appear here</div>
+            <div id="threatPanel" class="threat-panel"></div>
         </div>
-        <div id="statsBar">
-            <div id="gasDisplay"><span id="gasCount">0</span> gas</div>
-            <div id="powerDisplay">⚡ power: <span id="powerValue">1</span></div>
-            <div id="zoneDisplay">🌍 <span id="zoneName">Seed Patch</span></div>
-        </div>
-        <div id="zoneProgress">
-            <div class="progressLabel">⬆️ next zone at +100 gas</div>
-            <div class="progressBar"><div id="progressFill"></div></div>
-        </div>
-        <div id="zoneMessage" class="zone-message hidden"></div>
-    </div>
 
-    <div id="rightColumn">
-        <div id="upgradesPanel">
-            <h3>🔧 SCALABLE UPGRADES</h3>
-            <div class="upgrade" id="upgradePower">
-                <span class="name">💨 Fart Surge</span>
-                <span class="cost" id="powerCost">50</span>
-                <span class="desc">+1 click power (cost increases)</span>
+        <!-- Right Column: Upgrades & Actions -->
+        <div class="side-panel">
+            <div class="upgrade-group">
+                <h3>🔧 UPGRADES</h3>
+                <div class="upgrade" id="upgradeClick"><span>💨 Stronger Farts</span><span class="cost" id="clickCost">50</span><div class="desc">+1 click power (cost scales)</div></div>
+                <div class="upgrade" id="upgradeMega"><span>✨ Mega Burst</span><span class="cost" id="megaCost">200</span><div class="desc">+5 click power</div></div>
+                <div class="upgrade" id="buyBot"><span>🤖 Auto Bot</span><span class="cost" id="botCost">120</span><div class="desc">+1 gas per second</div></div>
+                <div class="upgrade" id="upgradeBot"><span>⚡ Turbo Nozzle</span><span class="cost" id="turboCost">300</span><div class="desc">+1 gas per bot/sec</div></div>
             </div>
-            <div class="upgrade" id="upgradeMega">
-                <span class="name">✨ Mega Burst</span>
-                <span class="cost" id="megaCost">200</span>
-                <span class="desc">+5 click power (cost increases)</span>
+            <div class="upgrade-group">
+                <h3>🌀 SIMULATION LAYERS</h3>
+                <div class="upgrade" id="prestigeBtn"><span>🌊 Enter New Layer</span><span class="cost" id="layerCost">Reach The End...</span><div class="desc">Reset for permanent global multiplier</div></div>
+                <div class="upgrade" id="fractureShop"><span>⚡ Fracture Upgrade</span><span class="cost" id="fractureCost">10 FP</span><div class="desc">+50% global production</div></div>
             </div>
-            <div class="upgrade" id="buyAuto">
-                <span class="name">🤖 Auto-Fart Bot</span>
-                <span class="cost" id="autoCost">120</span>
-                <span class="desc">+1 bot (produces gas/sec)</span>
+            <div class="upgrade-group">
+                <h3>🐾 COLLECTIBLES</h3>
+                <div class="upgrade" id="petBtn"><span>🌱 Summon Pet</span><span class="cost">100 gas</span><div class="desc">+20% production</div></div>
+                <div id="petDisplay" class="pet-status">No pet equipped</div>
             </div>
-            <div class="upgrade" id="upgradeAuto">
-                <span class="name">⚡ Turbo Nozzle</span>
-                <span class="cost" id="turboCost">300</span>
-                <span class="desc">+1 gas per bot / sec</span>
-            </div>
-            <div id="autoStats">
-                🤖 Bots: <span id="botCount">0</span> &nbsp;|&nbsp;
-                ⚙️ <span id="prodPerSec">0</span> gas/sec
-            </div>
-        </div>
-        <div id="infoPanel">
-            <div class="infoItem">🌟 each zone = 100 gas</div>
-            <div class="infoItem">📈 upgrade costs scale up</div>
-            <div class="infoItem">💾 auto-saves every click</div>
+            <div class="info-text">💾 Game auto-saves every 30 seconds</div>
         </div>
     </div>
-</div>
-
-<div id="cutscene" class="cutscene hidden">
-    <div id="cutsceneText"></div>
-</div>
-
-<script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
