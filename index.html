@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Bean Ascension – Cookie Clicker Style</title>
+    <title>Bean Ascension – Scalable Upgrades & Zones</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -22,29 +22,30 @@
             <div class="progressLabel">⬆️ next zone at +100 gas</div>
             <div class="progressBar"><div id="progressFill"></div></div>
         </div>
+        <div id="zoneMessage" class="zone-message hidden"></div>
     </div>
 
     <div id="rightColumn">
         <div id="upgradesPanel">
-            <h3>🔧 UPGRADES & AUTO</h3>
+            <h3>🔧 SCALABLE UPGRADES</h3>
             <div class="upgrade" id="upgradePower">
-                <span class="name">💨 Stronger Farts</span>
-                <span class="cost">50 gas</span>
-                <span class="desc">+1 click power</span>
+                <span class="name">💨 Fart Surge</span>
+                <span class="cost" id="powerCost">50</span>
+                <span class="desc">+1 click power (cost increases)</span>
             </div>
             <div class="upgrade" id="upgradeMega">
                 <span class="name">✨ Mega Burst</span>
-                <span class="cost">200 gas</span>
-                <span class="desc">+5 click power</span>
+                <span class="cost" id="megaCost">200</span>
+                <span class="desc">+5 click power (cost increases)</span>
             </div>
             <div class="upgrade" id="buyAuto">
                 <span class="name">🤖 Auto-Fart Bot</span>
-                <span class="cost">120 gas</span>
-                <span class="desc">+1 gas / sec</span>
+                <span class="cost" id="autoCost">120</span>
+                <span class="desc">+1 bot (produces gas/sec)</span>
             </div>
             <div class="upgrade" id="upgradeAuto">
                 <span class="name">⚡ Turbo Nozzle</span>
-                <span class="cost">300 gas</span>
+                <span class="cost" id="turboCost">300</span>
                 <span class="desc">+1 gas per bot / sec</span>
             </div>
             <div id="autoStats">
@@ -53,9 +54,9 @@
             </div>
         </div>
         <div id="infoPanel">
-            <div class="infoItem">🌟 reach 100 gas to travel</div>
-            <div class="infoItem">💾 game saves automatically</div>
-            <div class="infoItem">🔁 click the giant bean!</div>
+            <div class="infoItem">🌟 each zone = 100 gas</div>
+            <div class="infoItem">📈 upgrade costs scale up</div>
+            <div class="infoItem">💾 auto-saves every click</div>
         </div>
     </div>
 </div>
@@ -64,6 +65,6 @@
     <div id="cutsceneText"></div>
 </div>
 
-<script src="game.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
