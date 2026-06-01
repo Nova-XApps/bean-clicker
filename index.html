@@ -1,19 +1,18 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Bean Empire · Scalable Worlds · Leaderboard</title>
+    <title>Bean Empire · Pets · Leaderboard · Scalable Upgrades</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <!-- Left: Core Game -->
-        <div class="game-panel">
+    <div class="game-container">
+        <!-- LEFT PANEL: Core Game & Events -->
+        <div class="left-panel">
             <div class="bean-card">
                 <div class="bean" id="bean">🫘</div>
-                <div class="click-hint">🔥 Click the Bean 🔥</div>
+                <div class="click-hint">Click the Bean</div>
                 <div id="comboDisplay" class="combo">⚡ Combo: 0</div>
             </div>
             <div class="stats-grid">
@@ -33,32 +32,47 @@
             <div id="bossAlert" class="boss-alert hidden" onclick="defeatBoss()">⚠️ BOSS ACTIVE ⚠️</div>
         </div>
 
-        <!-- Right: Upgrades & Leaderboard -->
+        <!-- RIGHT PANEL: Tabs -->
         <div class="right-panel">
-            <div class="upgrade-section">
-                <h3>⚡ UPGRADES</h3>
-                <div class="upgrade-grid">
-                    <div class="upgrade" id="upgradeClick"><span>💨 Stronger Farts</span><span class="cost" id="clickCost">50</span><div class="desc">+1 click power</div></div>
-                    <div class="upgrade" id="upgradeMega"><span>✨ Mega Burst</span><span class="cost" id="megaCost">200</span><div class="desc">+5 click power</div></div>
-                    <div class="upgrade" id="buyBot"><span>🤖 Auto Bot</span><span class="cost" id="botCost">120</span><div class="desc">+1 gas/sec</div></div>
-                    <div class="upgrade" id="upgradeBot"><span>⚡ Turbo Nozzle</span><span class="cost" id="turboCost">300</span><div class="desc">+1 per bot/sec</div></div>
-                    <div class="upgrade" id="upgradeCrit"><span>🎯 Critical Eye</span><span class="cost" id="critCost">500</span><div class="desc">+5% crit chance (max 50%)</div></div>
-                    <div class="upgrade" id="upgradeDouble"><span>💎 Double Tap</span><span class="cost" id="doubleCost">800</span><div class="desc">+10% chance for double gas</div></div>
-                    <div class="upgrade" id="upgradeAutoClick"><span>🖱️ Auto-Clicker</span><span class="cost" id="autoClickCost">1000</span><div class="desc">1 free click/sec</div></div>
+            <div class="tab-bar">
+                <button class="tab-btn active" data-tab="upgrades">⚡ Upgrades</button>
+                <button class="tab-btn" data-tab="pets">🐾 Pets & Crates</button>
+                <button class="tab-btn" data-tab="leaderboard">🏆 Leaderboard</button>
+            </div>
+
+            <!-- Upgrade Tab (with pages) -->
+            <div id="upgradesTab" class="tab-content active">
+                <div class="upgrade-header">
+                    <button id="prevPageBtn" disabled>◀</button>
+                    <span>Page <span id="pageNum">1</span> / <span id="totalPages">2</span></span>
+                    <button id="nextPageBtn">▶</button>
                 </div>
+                <div id="upgradeList" class="upgrade-grid"></div>
                 <div class="prestige-row">
                     <div class="upgrade" id="prestigeBtn"><span>🌀 Quantum Leap</span><span class="cost" id="prestigeReq">Reach last world</span><div class="desc">Reset for Fracture & permanent boost</div></div>
                 </div>
             </div>
 
-            <div class="leaderboard-section">
-                <h3>🏆 GLOBAL LEADERBOARD</h3>
+            <!-- Pets Tab -->
+            <div id="petsTab" class="tab-content hidden">
+                <div class="crate-area">
+                    <button id="openCrateBtn" class="crate-btn">📦 Open Pet Crate (100 gas)</button>
+                    <div id="crateResult" class="crate-result"></div>
+                </div>
+                <h4>Your Pets</h4>
+                <div id="petInventory" class="pet-inventory"></div>
+                <div class="equip-info">Equipped pets (max 3): <span id="equippedList">None</span></div>
+                <button id="autoEquipBtn" class="small-btn">⚡ Auto-Equip Best</button>
+            </div>
+
+            <!-- Leaderboard Tab -->
+            <div id="leaderboardTab" class="tab-content hidden">
                 <div class="leaderboard-input">
                     <input type="text" id="playerName" placeholder="Your name" maxlength="12">
                     <button id="submitScoreBtn">Submit Score</button>
                 </div>
                 <div id="leaderboardList" class="leaderboard-list">Loading...</div>
-                <div class="leaderboard-note">* Score = Fracture + Prestige×10</div>
+                <div class="leaderboard-note">* Score = Fracture + Prestige × 10</div>
             </div>
         </div>
     </div>
