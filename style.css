@@ -80,7 +80,7 @@ body {
     color: #5a3e1b;
 }
 
-.zoneProgress {
+#zoneProgress {
     margin-top: 15px;
 }
 .progressLabel {
@@ -101,7 +101,7 @@ body {
     transition: width 0.1s;
 }
 
-/* RIGHT COLUMN — upgrades & live */
+/* RIGHT COLUMN — upgrades */
 #rightColumn {
     flex: 1.2;
     min-width: 260px;
@@ -161,7 +161,7 @@ body {
     font-weight: bold;
 }
 
-#livePlayersPanel {
+#infoPanel {
     background: #2e241a;
     border-radius: 28px;
     padding: 14px;
@@ -169,7 +169,7 @@ body {
     color: #ffda99;
     border: 1px solid #ab8a5e;
 }
-.liveItem {
+.infoItem {
     margin: 6px 0;
     font-weight: bold;
 }
