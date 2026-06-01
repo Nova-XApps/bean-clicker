@@ -3,57 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Bean Ascension | Cosmic Clicker</title>
+    <title>Bean Ascension • Cookie Clicker style</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
-<div class="game-container" id="gameApp">
-    <h1>🫘 BEAN ASCENSION <span class="bean-icon">✨</span></h1>
-    <div class="stats-panel">
-        <div class="stat-card"><div class="stat-label">💨 GAS</div><div class="stat-value" id="gas">0</div></div>
-        <div class="stat-card"><div class="stat-label">⚡ CLICK POWER</div><div class="stat-value" id="power">1</div></div>
-        <div class="stat-card"><div class="stat-label">🌌 ZONE</div><div class="stat-value" id="zone">Seed Patch</div></div>
-        <div class="stat-card"><div class="stat-label">🤖 AUTO-FARTS</div><div class="stat-value" id="autoCount">0</div></div>
-        <div class="stat-card"><div class="stat-label">⚙️ AUTO GAS/SEC</div><div class="stat-value" id="autoPerSec">0</div></div>
-    </div>
-    <div class="zone-progress">
-        <div class="stat-label">🏁 ZONE PROGRESS (next zone at +100 gas)</div>
-        <div class="progress-bar-bg"><div class="progress-fill" id="zoneFill"></div></div>
-    </div>
-
-    <div class="bean-button">
-        <button id="beanBtn">🫘 CLICK BEAN</button>
-    </div>
-
-    <div class="upgrades-grid">
-        <div class="upgrade-card" id="upgradePowerBtn">
-            <div class="upgrade-name">💨 Fart Surge <span class="upgrade-cost">50 gas</span></div>
-            <div class="upgrade-desc">+1 Click Power</div>
+<div id="gameWrapper">
+    <!-- Left side: giant bean + stats -->
+    <div id="leftColumn">
+        <div id="cookieArea">
+            <div id="bean" class="bean">🫘</div>
+            <div id="clickHint">click the bean</div>
         </div>
-        <div class="upgrade-card" id="megaPowerBtn">
-            <div class="upgrade-name">✨ Mega Burst <span class="upgrade-cost">200 gas</span></div>
-            <div class="upgrade-desc">+5 Click Power</div>
+        <div id="statsBar">
+            <div id="gasDisplay"><span id="gasCount">0</span> gas</div>
+            <div id="powerDisplay">⚡ power: <span id="powerValue">1</span></div>
+            <div id="zoneDisplay">🌍 <span id="zoneName">Seed Patch</span></div>
         </div>
-        <div class="upgrade-card" id="autoBuyBtn">
-            <div class="upgrade-name">🤖 Auto-Fart Bot <span class="upgrade-cost">120 gas</span></div>
-            <div class="upgrade-desc">+1 automatic gas/sec</div>
-        </div>
-        <div class="upgrade-card" id="autoUpgradeBtn">
-            <div class="upgrade-name">⚡ Turbo Nozzle <span class="upgrade-cost">300 gas</span></div>
-            <div class="upgrade-desc">+1 gas per Auto-Fart (per sec)</div>
+        <div id="zoneProgress">
+            <div class="progressLabel">⬆️ next zone at +100 gas</div>
+            <div class="progressBar"><div id="progressFill"></div></div>
         </div>
     </div>
 
-    <div class="live-stats">
-        <div class="live-badge">👥 <span id="currentPlayers">0</span> playing right now</div>
-        <div class="live-badge">🌟 <span id="totalPlayersAllTime">0</span> total bean masters (all time)</div>
-        <div class="live-badge">🔄 Updates every 10s</div>
+    <!-- Right side: upgrades & live players -->
+    <div id="rightColumn">
+        <div id="upgradesPanel">
+            <h3>🔧 UPGRADES & AUTO</h3>
+            <div class="upgrade" id="upgradePower">
+                <span class="name">💨 Stronger Farts</span>
+                <span class="cost">50 gas</span>
+                <span class="desc">+1 click power</span>
+            </div>
+            <div class="upgrade" id="upgradeMega">
+                <span class="name">✨ Mega Burst</span>
+                <span class="cost">200 gas</span>
+                <span class="desc">+5 click power</span>
+            </div>
+            <div class="upgrade" id="buyAuto">
+                <span class="name">🤖 Auto-Fart Bot</span>
+                <span class="cost">120 gas</span>
+                <span class="desc">+1 gas / sec</span>
+            </div>
+            <div class="upgrade" id="upgradeAuto">
+                <span class="name">⚡ Turbo Nozzle</span>
+                <span class="cost">300 gas</span>
+                <span class="desc">+1 gas per bot / sec</span>
+            </div>
+            <div id="autoStats">
+                🤖 Bots: <span id="botCount">0</span> &nbsp;|&nbsp;
+                ⚙️ <span id="prodPerSec">0</span> gas/sec
+            </div>
+        </div>
+
+        <div id="livePlayersPanel">
+            <div class="liveItem">👥 <span id="onlineCount">0</span> playing right now</div>
+            <div class="liveItem">🌟 <span id="totalCount">0</span> total bean masters (all time)</div>
+            <div class="liveItem">🔄 real‑time updates</div>
+        </div>
     </div>
-    <footer>✦ The Cosmic Bean awaits — reach The End... if you dare ✦</footer>
 </div>
 
-<div id="cutsceneOverlay" style="display: none;" class="cutscene-overlay">
-    <div id="cutsceneMsg">✨</div>
+<div id="cutscene" class="cutscene hidden">
+    <div id="cutsceneText"></div>
 </div>
 
 <script src="game.js"></script>
