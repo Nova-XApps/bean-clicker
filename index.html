@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Bean Empire 🫘 - The Grand Saga</title>
+    <title>Bean Empire 🫘 - The Ultimate Incremental</title>
     <style>
         * {
             box-sizing: border-box;
@@ -11,18 +11,15 @@
             padding: 0;
             user-select: none;
         }
-
         body {
             background: #0a0c15;
-            font-family: 'Segoe UI', 'Cinzel', 'Courier New', monospace;
             color: #eef2ff;
+            font-family: 'Segoe UI', 'Cinzel', monospace;
             overflow: hidden;
             height: 100vh;
             display: flex;
             flex-direction: column;
         }
-
-        /* ticker */
         .ticker {
             background: #1e1a2f;
             border-bottom: 1px solid #e8b84b40;
@@ -39,28 +36,22 @@
             padding-left: 100%;
         }
         @keyframes tickerMove { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
-
-        /* main layout */
         .app {
             display: grid;
-            grid-template-columns: 260px 1fr 320px;
+            grid-template-columns: 280px 1fr 340px;
             flex: 1;
             overflow: hidden;
             gap: 1px;
             background: #11151f;
         }
-
-        /* panels */
         .panel {
             background: #0f1320;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            padding: 10px;
+            padding: 12px;
             gap: 12px;
         }
-
-        /* bean section */
         .bean-card {
             text-align: center;
             background: #12172a;
@@ -121,13 +112,12 @@
             font-size: 0.7rem;
             display: inline-block;
         }
-        /* buildings */
-        .building-list {
+        .building-list, .upg-grid {
             display: flex;
             flex-direction: column;
             gap: 6px;
         }
-        .building {
+        .building, .upgrade, .prestige-shop-item {
             background: #0b1020;
             border: 1px solid #2a2f48;
             border-radius: 14px;
@@ -138,8 +128,9 @@
             cursor: pointer;
             transition: 0.07s linear;
         }
-        .building:active { transform: scale(0.98); }
-        .building.cant { opacity: 0.4; pointer-events: none; }
+        .building:active, .upgrade:active { transform: scale(0.98); }
+        .building.cant, .upgrade.locked { opacity: 0.4; pointer-events: none; }
+        .upgrade.bought { opacity: 0.6; filter: grayscale(0.2); pointer-events: none; }
         .building .b-count {
             background: #e8b84b20;
             border-radius: 30px;
@@ -148,30 +139,10 @@
             font-weight: bold;
             font-size: 1.2rem;
         }
-        .building-info { flex: 1; }
-        .building-name { font-weight: bold; font-size: 0.85rem; }
-        .building-desc { font-size: 0.6rem; color: #8e9ac0; }
-        .building-cost { color: #f5d07a; font-weight: bold; font-family: monospace; }
-
-        /* upgrades */
-        .upg-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        .upgrade {
-            background: #0b1020;
-            border: 1px solid #2a2f48;
-            border-radius: 12px;
-            padding: 8px;
-            display: flex;
-            gap: 8px;
-            cursor: pointer;
-        }
-        .upgrade.locked { opacity: 0.4; pointer-events: none; }
-        .upgrade.bought { opacity: 0.6; filter: grayscale(0.2); pointer-events: none; }
-
-        /* tabs */
+        .building-info, .upgrade-info { flex: 1; }
+        .building-name, .upgrade-name { font-weight: bold; font-size: 0.85rem; }
+        .building-desc, .upgrade-desc { font-size: 0.6rem; color: #8e9ac0; }
+        .building-cost, .upgrade-cost { color: #f5d07a; font-weight: bold; font-family: monospace; }
         .tabbar {
             display: flex;
             gap: 4px;
@@ -202,9 +173,7 @@
             flex: 1;
         }
         .tab-content.active { display: flex; }
-
-        /* pets */
-        .pet-row {
+        .pet-row, .shop-item {
             background: #12172a;
             border-radius: 12px;
             padding: 8px;
@@ -212,7 +181,6 @@
             justify-content: space-between;
             align-items: center;
         }
-        /* leaderboard */
         .lb-entry {
             background: #0b1020;
             padding: 5px 10px;
@@ -268,10 +236,7 @@
             opacity: 0;
             transition: 0.2s;
         }
-        .overlay.show {
-            visibility: visible;
-            opacity: 1;
-        }
+        .overlay.show { visibility: visible; opacity: 1; }
         .overlay-card {
             background: #141b2b;
             border: 1px solid #e8b84b;
@@ -292,16 +257,8 @@
             opacity: 0;
             transition: 0.5s;
         }
-        .cutscene.show {
-            visibility: visible;
-            opacity: 1;
-        }
-        .cutscene-text {
-            font-size: 2rem;
-            font-family: monospace;
-            color: #e8b84b;
-            text-align: center;
-        }
+        .cutscene.show { visibility: visible; opacity: 1; }
+        .cutscene-text { font-size: 2rem; font-family: monospace; color: #e8b84b; text-align: center; white-space: pre-line; }
         @media (max-width: 800px) {
             .app { grid-template-columns: 1fr; }
             .panel { max-height: 50vh; }
@@ -309,7 +266,7 @@
     </style>
 </head>
 <body>
-<div class="ticker"><span>🫘 BEAN EMPIRE • CLICK THE SACRED BEAN • UNLOCK THE COSMOS • FRACTURE POINTS • PRESTIGE • THE END... IS ONLY THE BEGINNING 🫘</span></div>
+<div class="ticker"><span>🫘 BEAN EMPIRE • CLICK THE SACRED BEAN • 15 BUILDINGS • 24 UPGRADES • 12 PET RARITIES • PRESTIGE SHOP • REALITY FRACTURE • THE END... IS ONLY THE BEGINNING 🫘</span></div>
 <div class="app">
     <!-- LEFT COLUMN -->
     <div class="panel">
@@ -321,44 +278,41 @@
             <div class="stat-row"><span>🌀 combo</span><span id="comboCount">x0</span></div>
             <div class="combo-bar"><div class="combo-fill" id="comboFill"></div></div>
             <div class="stat-row"><span>🎯 crit chance</span><span id="critChanceText">5%</span></div>
+            <div class="stat-row"><span>💠 double chance</span><span id="doubleChanceText">0%</span></div>
         </div>
         <div class="stat-row"><span>🌍 zone:</span><span id="zoneName">Seed Patch</span></div>
         <div class="zone-progress"><div class="zone-fill" id="zoneFill"></div></div>
-        <div class="stat-row"><span>💠 fracture</span><span id="fractureAmt">0</span></div>
-        <div class="stat-row"><span>🏆 prestige</span><span id="prestigeLv">0</span></div>
+        <div class="stat-row"><span>💠 fracture points</span><span id="fractureAmt">0</span></div>
+        <div class="stat-row"><span>🏆 prestige level</span><span id="prestigeLv">0</span></div>
         <div class="stat-row"><span>🖱️ total clicks</span><span id="totalClicks">0</span></div>
+        <div class="stat-row"><span>🐉 bosses defeated</span><span id="bossCount">0</span></div>
         <div id="eventBox" class="badge" style="text-align:center;">✨ waiting for event...</div>
         <div id="bossAlert" style="display:none; background:#aa3030; border-radius:30px; text-align:center; padding:6px; cursor:pointer;">⚠️ BOSS INVASION - CLICK TO FIGHT ⚠️</div>
         <div id="achieveList" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
-        <div>🏅 score: <span id="leaderScore">0</span></div>
+        <div>🏅 total score: <span id="leaderScore">0</span></div>
         <button id="prestigeBtn" style="background:#7c5e9a;">🌀 PRESTIGE (reach The End…)</button>
+        <button id="statsBtn" style="background:#2a4a7a;">📊 STATISTICS</button>
     </div>
 
-    <!-- MIDDLE: upgrades + pets + milestones -->
+    <!-- MIDDLE: Upgrades, Pets, Milestones, Prestige Shop, Leaderboard -->
     <div class="panel">
         <div class="tabbar">
             <button class="tab active" data-tab="upg">⚡ UPGRADES</button>
             <button class="tab" data-tab="pet">🐾 PETS</button>
+            <button class="tab" data-tab="shop">🏪 PRESTIGE SHOP</button>
             <button class="tab" data-tab="goal">🏅 MILESTONES</button>
             <button class="tab" data-tab="lb">🏆 LEADERBOARD</button>
         </div>
-        <div id="upgTab" class="tab-content active">
-            <div class="upg-grid" id="upgradesContainer"></div>
-        </div>
-        <div id="petTab" class="tab-content">
-            <div id="petsContainer" style="display:flex; flex-direction:column; gap:6px;"></div>
-            <button id="openCrateBtn">📦 OPEN PET CRATE (200 gas)</button>
-        </div>
+        <div id="upgTab" class="tab-content active"><div class="upg-grid" id="upgradesContainer"></div></div>
+        <div id="petTab" class="tab-content"><div id="petsContainer" style="display:flex; flex-direction:column; gap:6px;"></div><button id="openCrateBtn">📦 OPEN PET CRATE (200 gas)</button></div>
+        <div id="shopTab" class="tab-content"><div id="prestigeShopContainer" style="display:flex; flex-direction:column; gap:6px;"></div><div class="small">💠 Fracture Points: <span id="fpDisplay">0</span></div></div>
         <div id="goalTab" class="tab-content" style="gap:6px;" id="milestonesList"></div>
-        <div id="lbTab" class="tab-content">
-            <div><input id="playerNameInput" placeholder="Your name" style="background:#0b1020; border:1px solid #e8b84b; padding:5px; width:140px;"> <button id="submitScoreBtn">SUBMIT</button></div>
-            <div id="leaderboardList"></div>
-        </div>
+        <div id="lbTab" class="tab-content"><div><input id="playerNameInput" placeholder="Your name" style="background:#0b1020; border:1px solid #e8b84b; padding:5px; width:140px;"> <button id="submitScoreBtn">SUBMIT</button></div><div id="leaderboardList"></div></div>
     </div>
 
-    <!-- RIGHT: Buildings (10) -->
+    <!-- RIGHT: Buildings (15) -->
     <div class="panel">
-        <div style="font-weight:bold; margin-bottom:5px;">🏭 Bean Empire Buildings</div>
+        <div style="font-weight:bold; margin-bottom:5px;">🏭 Bean Empire Buildings (15)</div>
         <div class="building-list" id="buildingsList"></div>
     </div>
 </div>
@@ -367,7 +321,7 @@
 <div id="cutscene" class="cutscene"><div class="cutscene-text" id="cutsceneText"></div></div>
 
 <script>
-// ---------- CONFIG ----------
+// ======================== 15 BUILDINGS ========================
 const BUILDINGS = [
     { id:"curs", icon:"👆", name:"Cursor", baseCost:15, prod:0.2, desc:"Auto-pokes bean", count:0 },
     { id:"farm", icon:"🌱", name:"Bean Farm", baseCost:100, prod:0.7, desc:"Grows bean gas", count:0 },
@@ -378,52 +332,81 @@ const BUILDINGS = [
     { id:"rocket", icon:"🚀", name:"Harvester", baseCost:120000, prod:850, desc:"Cosmic dust", count:0 },
     { id:"star", icon:"⭐", name:"Star Condenser", baseCost:450000, prod:3200, desc:"Starlight", count:0 },
     { id:"galaxy", icon:"🌌", name:"Galaxy Engine", baseCost:2.2e6, prod:12000, desc:"Dark matter", count:0 },
-    { id:"void", icon:"💠", name:"Fracture Core", baseCost:18e6, prod:55000, desc:"Void energy", count:0 }
+    { id:"void", icon:"💠", name:"Fracture Core", baseCost:18e6, prod:55000, desc:"Void energy", count:0 },
+    { id:"nebula", icon:"🌫️", name:"Nebula Extractor", baseCost:80e6, prod:180000, desc:"Nebula gases", count:0 },
+    { id:"singularity", icon:"⚫", name:"Singularity", baseCost:350e6, prod:620000, desc:"Black hole harvest", count:0 },
+    { id:"dream", icon:"✨", name:"Dream Weaver", baseCost:1.2e9, prod:2.2e6, desc:"Reality threads", count:0 },
+    { id:"origin", icon:"🔮", name:"Origin Bean", baseCost:5e9, prod:8e6, desc:"Primordial essence", count:0 },
+    { id:"godhand", icon:"👑", name:"Bean God Idol", baseCost:20e9, prod:28e6, desc:"Divine blessing", count:0 }
 ];
-const UPGRADES = [
-    { id:"u1", icon:"💨", name:"Stronger Farts", cost:120, desc:"+3 click power", bought:false, effect:(g)=>g.clickPow+=3 },
-    { id:"u2", icon:"💎", name:"Double Tap", cost:800, desc:"+15% double chance", bought:false, effect:(g)=>g.doubleChance=Math.min(0.5,g.doubleChance+0.15) },
-    { id:"u3", icon:"🎯", name:"Eagle Eye", cost:2500, desc:"+12% crit chance", bought:false, effect:(g)=>g.critChance=Math.min(0.5,g.critChance+0.12) },
-    { id:"u4", icon:"🔥", name:"Mega Burst", cost:6000, desc:"+10 click power", bought:false, effect:(g)=>g.clickPow+=10 },
-    { id:"u5", icon:"✨", name:"Golden Wax", cost:18000, desc:"×1.6 global prod", bought:false, effect:(g)=>g.globalMult*=1.6 },
-    { id:"u6", icon:"🖱️", name:"Auto-Clicker I", cost:15000, desc:"2 auto/sec", bought:false, effect:(g)=>{ g.autoRate+=2; startAutoClick(); } },
-    { id:"u7", icon:"⚡", name:"Turbo Clicker", cost:70000, desc:"+8 auto/sec", bought:false, effect:(g)=>{ g.autoRate+=8; startAutoClick(); } },
-    { id:"u8", icon:"🌱", name:"Fertilizer", cost:25000, desc:"Farms x2", bought:false, effect:()=>boostBuilding("farm",2) },
-    { id:"u9", icon:"🏭", name:"Automation", cost:60000, desc:"Factories x2", bought:false, effect:()=>boostBuilding("fact",2) },
-    { id:"u10", icon:"🌀", name:"Dimensional Rift", cost:180000, desc:"Portals x2", bought:false, effect:()=>boostBuilding("portal",2) },
-    { id:"u11", icon:"💠", name:"Void Amplifier", cost:500000, desc:"Fracture Core x2", bought:false, effect:()=>boostBuilding("void",2) },
-    { id:"u12", icon:"👑", name:"Beanlord Ascension", cost:1.2e6, desc:"×3 global", bought:false, effect:(g)=>g.globalMult*=3 }
-];
+
+// ======================== 24 UPGRADES ========================
+let UPGRADES = [];
+function buildUpgrades() {
+    return [
+        { id:"u1", icon:"💨", name:"Stronger Farts", cost:120, desc:"+3 click power", bought:false, effect:(g)=>g.clickPow+=3 },
+        { id:"u2", icon:"💎", name:"Double Tap", cost:800, desc:"+15% double chance", bought:false, effect:(g)=>g.doubleChance=Math.min(0.5,g.doubleChance+0.15) },
+        { id:"u3", icon:"🎯", name:"Eagle Eye", cost:2500, desc:"+12% crit chance", bought:false, effect:(g)=>g.critChance=Math.min(0.5,g.critChance+0.12) },
+        { id:"u4", icon:"🔥", name:"Mega Burst", cost:6000, desc:"+10 click power", bought:false, effect:(g)=>g.clickPow+=10 },
+        { id:"u5", icon:"✨", name:"Golden Wax", cost:18000, desc:"×1.6 global prod", bought:false, effect:(g)=>g.globalMult*=1.6 },
+        { id:"u6", icon:"🖱️", name:"Auto-Clicker I", cost:15000, desc:"+2 auto/sec", bought:false, effect:(g)=>{ g.autoRate+=2; startAutoClick(); } },
+        { id:"u7", icon:"⚡", name:"Turbo Clicker", cost:70000, desc:"+8 auto/sec", bought:false, effect:(g)=>{ g.autoRate+=8; startAutoClick(); } },
+        { id:"u8", icon:"🌱", name:"Fertilizer", cost:25000, desc:"Farms x2", bought:false, effect:()=>boostBuilding("farm",2) },
+        { id:"u9", icon:"🏭", name:"Automation", cost:60000, desc:"Factories x2", bought:false, effect:()=>boostBuilding("fact",2) },
+        { id:"u10", icon:"🌀", name:"Dimensional Rift", cost:180000, desc:"Portals x2", bought:false, effect:()=>boostBuilding("portal",2) },
+        { id:"u11", icon:"💠", name:"Void Amplifier", cost:500000, desc:"Fracture Core x2", bought:false, effect:()=>boostBuilding("void",2) },
+        { id:"u12", icon:"👑", name:"Beanlord Ascension", cost:1.2e6, desc:"×3 global", bought:false, effect:(g)=>g.globalMult*=3 },
+        { id:"u13", icon:"🌫️", name:"Nebula Infusion", cost:4e6, desc:"Nebula Extractor x2", bought:false, effect:()=>boostBuilding("nebula",2) },
+        { id:"u14", icon:"⚫", name:"Singularity Core", cost:12e6, desc:"Singularity x2", bought:false, effect:()=>boostBuilding("singularity",2) },
+        { id:"u15", icon:"🔮", name:"Origin Recall", cost:35e6, desc:"Origin Bean x2", bought:false, effect:()=>boostBuilding("origin",2) },
+        { id:"u16", icon:"👑", name:"Idol Worship", cost:90e6, desc:"Bean God Idol x2", bought:false, effect:()=>boostBuilding("godhand",2) },
+        { id:"u17", icon:"💥", name:"Critical Overdrive", cost:250e6, desc:"Crit dmg +100%", bought:false, effect:(g)=>g.critMult+=1.0 },
+        { id:"u18", icon:"🔄", name:"Echo Chamber", cost:500e6, desc:"Double chance +25%", bought:false, effect:(g)=>g.doubleChance=Math.min(0.7,g.doubleChance+0.25) },
+        { id:"u19", icon:"🐉", name:"Dragon's Breath", cost:1e9, desc:"Click power x5", bought:false, effect:(g)=>g.clickPow*=5 },
+        { id:"u20", icon:"🌌", name:"Cosmic Catalyst", cost:3e9, desc:"Global ×4", bought:false, effect:(g)=>g.globalMult*=4 },
+        { id:"u21", icon:"⏳", name:"Time Dilation", cost:8e9, desc:"Auto-click rate x3", bought:false, effect:(g)=>{ g.autoRate*=3; startAutoClick(); } },
+        { id:"u22", icon:"💠", name:"Fracture Mastery", cost:20e9, desc:"+50 Fracture on prestige", bought:false, effect:()=>{ G.prestigeBonusFP=(G.prestigeBonusFP||0)+50; } },
+        { id:"u23", icon:"🏆", name:"Transcendence", cost:50e9, desc:"All prod x10", bought:false, effect:(g)=>g.globalMult*=10 },
+        { id:"u24", icon:"🫘", name:"True Bean", cost:120e9, desc:"Click power x100", bought:false, effect:(g)=>g.clickPow*=100 }
+    ];
+}
+UPGRADES = buildUpgrades();
+
+// ======================== 12 PET RARITIES ========================
 const PET_RARITIES = [
     { name:"Common", bonus:0.005, color:"gray" },{ name:"Uncommon", bonus:0.01, color:"#8bc34a" },{ name:"Rare", bonus:0.02, color:"#4a9de8" },
     { name:"Epic", bonus:0.05, color:"#b060e8" },{ name:"Legendary", bonus:0.12, color:"#e8a030" },{ name:"Mythic", bonus:0.22, color:"#ff884d" },
-    { name:"Divine", bonus:0.35, color:"#ff5555" },{ name:"Ethereal", bonus:0.52, color:"#dd88ff" },{ name:"Cosmic", bonus:0.75, color:"#66ffff" },{ name:"Bean God", bonus:1.1, color:"#ffd966" }
+    { name:"Divine", bonus:0.35, color:"#ff5555" },{ name:"Ethereal", bonus:0.52, color:"#dd88ff" },{ name:"Cosmic", bonus:0.75, color:"#66ffff" },
+    { name:"Voidborn", bonus:1.0, color:"#aa66ff" },{ name:"Omni", bonus:1.5, color:"#ffcc66" },{ name:"Bean God", bonus:2.2, color:"#ffd966" }
 ];
-const PET_NAMES = ["Sprout","Puff","Beanling","Void Pup","Nebula Cat","Quantum Fox","Fracture Bunny","Infinity Sprite","Elder Bean","Stardust Moth"];
+const PET_NAMES = ["Sprout","Puff","Beanling","Void Pup","Nebula Cat","Quantum Fox","Fracture Bunny","Infinity Sprite","Elder Bean","Stardust Moth","Dream Eater","Cosmic Turtle"];
 
+// ======================== GLOBAL STATE ========================
 let G = {
     gas: 0, totalGas: 0, totalClicks: 0, clickPow: 1, globalMult: 1, prestige: 0, fracture: 0,
     zoneIdx: 0, critChance: 0.05, critMult: 2.5, doubleChance: 0, autoRate: 0, frenzyUntil: 0,
-    combo: 0, maxCombo: 0, bossesDefeated: 0
+    combo: 0, maxCombo: 0, bossesDefeated: 0, prestigeBonusFP: 0
 };
 let buildingBoosts = {};
 let pets = [];
 let activeBoss = null;
 let prodInterval, autoInterval, saveInterval;
 let earnedAchievements = new Set();
+let prestigeShopUpgrades = { extraFP:0, permMult:1, startingClick:0 };
 
-// ZONES (40 zones, "The End…" at index 35 = 1M gas)
+// ZONES (45 zones, "The End…" at index 35 = 1M gas)
 const ZONE_NAMES = [
     "Seed Patch","Bean Meadow","Forest Floor","Canopy","Backyard","Main Street","Skyline","Skyscraper","Cloud Bridge","Cloud Layer",
     "Jetstream","Upper Atmo","Stratosphere","Mesosphere","Exosphere","Low Orbit","Satellite Belt","Moon Base","Asteroid Field","Mars Frontier",
     "Ring World","Deep Space","Nebula Edge","Stellar Nursery","Galactic Rim","Galactic Core","Intergalactic Void","Cosmic Nexus","Quantum Realm",
-    "Black Hole Rim","Universal Throne","Beanfinity","The End…","Reality Fracture","Code Ocean","Simulation Core","Outside The Game","Bean Origin","Infinite Loop","True Finality"
+    "Black Hole Rim","Universal Throne","Beanfinity","The End…","Reality Fracture","Code Ocean","Simulation Core","Outside The Game","Bean Origin","Infinite Loop","Finality",
+    "Beyond Infinity","The Absolute","Canvas of Void","Unwritten Chapter","You Are Bean"
 ];
 const THE_END_IDX = 32;
 function zoneThreshold(i) { if(i<=0) return 0; if(i===THE_END_IDX) return 1000000; return Math.floor(1000000 * Math.pow(i/THE_END_IDX, 2.4)); }
 
 // helpers
-function fmt(n){ if(n>=1e12) return (n/1e12).toFixed(2)+"T"; if(n>=1e9) return (n/1e9).toFixed(2)+"B"; if(n>=1e6) return (n/1e6).toFixed(2)+"M"; if(n>=1e3) return (n/1e3).toFixed(1)+"K"; return Math.floor(n); }
+function fmt(n){ if(n>=1e15) return (n/1e15).toFixed(2)+"Qa"; if(n>=1e12) return (n/1e12).toFixed(2)+"T"; if(n>=1e9) return (n/1e9).toFixed(2)+"B"; if(n>=1e6) return (n/1e6).toFixed(2)+"M"; if(n>=1e3) return (n/1e3).toFixed(1)+"K"; return Math.floor(n); }
 function toast(msg){ let t=document.createElement("div"); t.className="toast"; t.innerText=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2800); }
 function boostBuilding(id,mult){ buildingBoosts[id] = (buildingBoosts[id]||1)*mult; renderBuildings(); }
 function totalBuildings(){ return BUILDINGS.reduce((s,b)=>s+b.count,0); }
@@ -435,13 +418,17 @@ function updateUI(){
     document.getElementById("comboCount").innerText = "x"+G.combo;
     document.getElementById("comboFill").style.width = (G.combo*10)+"%";
     document.getElementById("critChanceText").innerText = Math.round(G.critChance*100)+"%";
+    document.getElementById("doubleChanceText").innerText = Math.round(G.doubleChance*100)+"%";
     document.getElementById("fractureAmt").innerText = fmt(G.fracture);
     document.getElementById("prestigeLv").innerText = G.prestige;
     document.getElementById("totalClicks").innerText = fmt(G.totalClicks);
+    document.getElementById("bossCount").innerText = G.bossesDefeated;
     let score = Math.floor(G.fracture + G.prestige*10 + G.totalGas/1000);
     document.getElementById("leaderScore").innerText = fmt(score);
+    document.getElementById("fpDisplay").innerText = fmt(G.fracture);
     updateZone();
     renderBuildings();
+    renderPrestigeShop();
 }
 function updateZone(){
     let zone = ZONE_NAMES[G.zoneIdx] || "Infinity";
@@ -460,16 +447,15 @@ function checkZone(){
             window.cutscenePlayed = true;
             playCutscene();
         } else toast(`🌍 Reached ${ZONE_NAMES[G.zoneIdx]}!`);
-        if(G.zoneIdx > THE_END_IDX) G.fracture++;
+        if(G.zoneIdx > THE_END_IDX) G.fracture += 2;
         updateUI();
     }
 }
 function playCutscene(){
     let cs = document.getElementById("cutscene");
     cs.classList.add("show");
-    let textDiv = document.getElementById("cutsceneText");
-    textDiv.innerText = "✦ THE END... ✦\n\n...or is it?\nReality fractures...";
-    setTimeout(()=>{ cs.classList.remove("show"); toast("💠 Post-Story unlocked! Fracture points awarded."); }, 4000);
+    document.getElementById("cutsceneText").innerText = "✦ THE END... ✦\n\n...or is it?\nReality fractures...\n+5 Fracture Points!";
+    setTimeout(()=>{ cs.classList.remove("show"); toast("💠 Post-Story unlocked! Fracture points awarded."); }, 4500);
 }
 function addGas(amt, fromProd=false){
     let gain = amt;
@@ -538,8 +524,8 @@ function renderUpgrades(){
         let boughtClass = u.bought ? "bought" : (locked?"locked":"");
         return `<div class="upgrade ${boughtClass}" onclick="buyUpgrade('${u.id}')">
             <span style="font-size:1.3rem;">${u.icon}</span>
-            <div style="flex:1;"><b>${u.name}</b><div style="font-size:0.7rem;">${u.desc}</div></div>
-            <div class="building-cost">${fmt(u.cost)}</div>
+            <div class="upgrade-info"><div class="upgrade-name">${u.name}</div><div class="upgrade-desc">${u.desc}</div></div>
+            <div class="upgrade-cost">${fmt(u.cost)}</div>
         </div>`;
     }).join("");
 }
@@ -563,8 +549,8 @@ function openPetCrate(){
     G.gas -= 200;
     let r = Math.random();
     let idx = 0;
-    if(r<0.25) idx=0; else if(r<0.45) idx=1; else if(r<0.62) idx=2; else if(r<0.77) idx=3; else if(r<0.88) idx=4; else if(r<0.95) idx=5; else idx=6+Math.floor(Math.random()*4);
-    idx = Math.min(9,idx);
+    if(r<0.2) idx=0; else if(r<0.38) idx=1; else if(r<0.54) idx=2; else if(r<0.68) idx=3; else if(r<0.8) idx=4; else if(r<0.89) idx=5; else if(r<0.95) idx=6; else if(r<0.98) idx=7; else idx=8+Math.floor(Math.random()*4);
+    idx = Math.min(11,idx);
     let petData = PET_RARITIES[idx];
     let petName = PET_NAMES[Math.floor(Math.random()*PET_NAMES.length)] + " " + petData.name;
     let newPet = { id: Date.now()+Math.random(), name: petName, bonus: petData.bonus, rarity: petData.name, equipped: false };
@@ -580,11 +566,34 @@ function renderPets(){
     container.innerHTML = pets.map(p=>`<div class="pet-row"><span>🐾 ${p.name}</span><span style="color:${PET_RARITIES.find(r=>r.name===p.rarity)?.color}">+${(p.bonus*100).toFixed(1)}%</span><span>${p.equipped?"⭐ equipped":""}</span></div>`).join("");
     if(!pets.length) container.innerHTML = "<div class='small'>No pets yet. Open crate!</div>";
 }
-let eventsList = [
+// PRESTIGE SHOP
+function renderPrestigeShop(){
+    let container = document.getElementById("prestigeShopContainer");
+    container.innerHTML = `
+        <div class="prestige-shop-item" onclick="buyPrestigeUpgrade('extraFP')"><div>💠 Extra Fracture</div><div>+5 FP per prestige</div><div>Cost: 25 FP</div><div>Owned: ${prestigeShopUpgrades.extraFP||0}</div></div>
+        <div class="prestige-shop-item" onclick="buyPrestigeUpgrade('permMult')"><div>✨ Permanent Multiplier</div><div>+0.2x global</div><div>Cost: 50 FP</div><div>Current: ${(prestigeShopUpgrades.permMult||1).toFixed(1)}x</div></div>
+        <div class="prestige-shop-item" onclick="buyPrestigeUpgrade('startingClick')"><div>🖱️ Starting Click Power</div><div>+10 base click</div><div>Cost: 40 FP</div><div>Bonus: ${(prestigeShopUpgrades.startingClick||0)}</div></div>
+    `;
+}
+function buyPrestigeUpgrade(type){
+    let costs = { extraFP:25, permMult:50, startingClick:40 };
+    if(G.fracture < costs[type]){ toast("Not enough Fracture Points"); return; }
+    G.fracture -= costs[type];
+    if(type==='extraFP') prestigeShopUpgrades.extraFP = (prestigeShopUpgrades.extraFP||0)+5;
+    if(type==='permMult') prestigeShopUpgrades.permMult = (prestigeShopUpgrades.permMult||1)+0.2;
+    if(type==='startingClick') prestigeShopUpgrades.startingClick = (prestigeShopUpgrades.startingClick||0)+10;
+    toast(`Prestige upgrade purchased!`);
+    renderPrestigeShop();
+    updateUI();
+}
+// EVENTS
+const eventsList = [
     { msg:"💨 Gas Surge!", act:()=>{ G.globalMult*=1.4; setTimeout(()=>{ G.globalMult/=1.4; toast("Gas surge ended"); updateUI(); },25000); return "+40% global 25s"; } },
     { msg:"✨ Golden Bean!", act:()=>{ let bonus=G.clickPow*200; addGas(bonus); return `+${fmt(bonus)} gas!`; } },
     { msg:"⚡ CLICK FRENZY!", act:()=>{ G.frenzyUntil=Date.now()+15000; setTimeout(()=>{ G.frenzyUntil=0; updateUI(); },15000); return "Click power x3 for 15s!"; } },
-    { msg:"🎯 Lucky Strike!", act:()=>{ let old=G.critChance; G.critChance=1; setTimeout(()=>{ G.critChance=old; updateUI(); },12000); return "100% crit 12s"; } }
+    { msg:"🎯 Lucky Strike!", act:()=>{ let old=G.critChance; G.critChance=1; setTimeout(()=>{ G.critChance=old; updateUI(); },12000); return "100% crit 12s"; } },
+    { msg:"💎 Double Rainbow!", act:()=>{ let old=G.doubleChance; G.doubleChance=0.8; setTimeout(()=>{ G.doubleChance=old; updateUI(); },15000); return "80% double 15s"; } },
+    { msg:"🌀 Fracture Storm", act:()=>{ G.fracture+=2; toast("+2 Fracture Points!"); return "Fracture boost!"; } }
 ];
 function triggerRandomEvent(){
     let ev = eventsList[Math.floor(Math.random()*eventsList.length)];
@@ -594,8 +603,7 @@ function triggerRandomEvent(){
     updateUI();
 }
 setInterval(triggerRandomEvent, 45000);
-
-// BOSS SYSTEM
+// BOSS
 function trySpawnBoss(){
     if(activeBoss || G.zoneIdx<10) return;
     if(Math.random()<0.18){
@@ -603,7 +611,7 @@ function trySpawnBoss(){
         G._oldMult = G.globalMult;
         G.globalMult *= activeBoss.mult;
         document.getElementById("bossAlert").style.display = "block";
-        toast(`⚠️ BOSS ${activeBoss.name} appears!`, "");
+        toast(`⚠️ BOSS ${activeBoss.name} appears!`);
     }
 }
 function defeatBoss(){
@@ -623,32 +631,47 @@ document.getElementById("bossAlert")?.addEventListener("click", defeatBoss);
 // PRESTIGE
 function doPrestige(){
     if(G.zoneIdx < THE_END_IDX){ toast("Reach 'The End…' (1M gas) first!"); return; }
-    let gain = 5 + Math.floor(G.totalGas/5000) + G.zoneIdx;
-    if(confirm(`🌀 Prestige for ${gain} Fracture + permanent ×${(1+(G.prestige+1)*0.2).toFixed(1)} bonus?`)){
+    let gain = 5 + Math.floor(G.totalGas/5000) + G.zoneIdx + (prestigeShopUpgrades.extraFP||0);
+    if(confirm(`🌀 Prestige for ${gain} Fracture + permanent ×${(1+(G.prestige+1)*0.2 * (prestigeShopUpgrades.permMult||1)).toFixed(1)} bonus?`)){
         G.fracture += gain;
         G.prestige++;
-        G.gas = 0; G.totalGas = 0; G.clickPow=1; G.globalMult=1; G.critChance=0.05; G.doubleChance=0; G.autoRate=0; G.zoneIdx=0; G.combo=0;
+        let permBonus = (prestigeShopUpgrades.permMult||1);
+        G.globalMult = 1 * permBonus;
+        G.clickPow = 1 + (prestigeShopUpgrades.startingClick||0);
+        G.gas = 0; G.totalGas = 0; G.critChance=0.05; G.doubleChance=0; G.autoRate=0; G.zoneIdx=0; G.combo=0;
         BUILDINGS.forEach(b=>b.count=0);
         UPGRADES.forEach(u=>u.bought=false);
         buildingBoosts = {};
         pets = [];
         if(autoInterval) clearInterval(autoInterval);
         startAutoClick();
-        renderUpgrades(); renderBuildings(); renderPets();
+        renderUpgrades(); renderBuildings(); renderPets(); renderAchievements();
         updateUI();
         toast(`🌀 Prestige ${G.prestige} complete! +${gain} FP`);
     }
 }
-// ACHIEVEMENTS
+// ACHIEVEMENTS (20)
 const ACH_LIST = [
     { id:"click1", icon:"🫘", tip:"First click", cond:()=>G.totalClicks>=1 },
     { id:"click100", icon:"💯", tip:"100 clicks", cond:()=>G.totalClicks>=100 },
+    { id:"click1k", icon:"⚡", tip:"1k clicks", cond:()=>G.totalClicks>=1000 },
     { id:"gas1M", icon:"🌊", tip:"1M total gas", cond:()=>G.totalGas>=1e6 },
+    { id:"gas1B", icon:"🔥", tip:"1B gas", cond:()=>G.totalGas>=1e9 },
     { id:"build10", icon:"🏗️", tip:"10 buildings", cond:()=>totalBuildings()>=10 },
+    { id:"build50", icon:"🏙️", tip:"50 buildings", cond:()=>totalBuildings()>=50 },
     { id:"prestige1", icon:"🌀", tip:"First prestige", cond:()=>G.prestige>=1 },
+    { id:"prestige5", icon:"🌟", tip:"Prestige 5", cond:()=>G.prestige>=5 },
     { id:"bossKill", icon:"🐉", tip:"Defeat boss", cond:()=>G.bossesDefeated>=1 },
+    { id:"boss3", icon:"🐉🐉🐉", tip:"3 bosses", cond:()=>G.bossesDefeated>=3 },
     { id:"theend", icon:"🏁", tip:"Reach The End…", cond:()=>G.zoneIdx>=THE_END_IDX },
-    { id:"combo10", icon:"🔥", tip:"Combo x10", cond:()=>G.maxCombo>=10 }
+    { id:"combo10", icon:"🔥", tip:"Combo x10", cond:()=>G.maxCombo>=10 },
+    { id:"crit50", icon:"🎯", tip:"50% crit chance", cond:()=>G.critChance>=0.5 },
+    { id:"double50", icon:"💎", tip:"50% double chance", cond:()=>G.doubleChance>=0.5 },
+    { id:"pet5", icon:"🐾", tip:"5 pets", cond:()=>pets.length>=5 },
+    { id:"petGod", icon:"🐉🐾", tip:"Legendary pet", cond:()=>pets.some(p=>p.bonus>=1.0) },
+    { id:"fracture100", icon:"💠", tip:"100 Fracture", cond:()=>G.fracture>=100 },
+    { id:"gps1B", icon:"⚡", tip:"1B GPS", cond:()=>calcGPS()>=1e9 },
+    { id:"ascend", icon:"👑", tip:"True Bean upgrade", cond:()=>UPGRADES.find(u=>u.id==="u24")?.bought===true }
 ];
 function checkAchievements(){
     let changed=false;
@@ -663,7 +686,7 @@ function checkAchievements(){
 }
 function renderAchievements(){
     let cont = document.getElementById("achieveList");
-    cont.innerHTML = Array.from(earnedAchievements).map(id=>{
+    cont.innerHTML = Array.from(earnedAchievements).slice(0,12).map(id=>{
         let ach = ACH_LIST.find(a=>a.id===id);
         return `<span class="badge" style="background:#e8b84b20;">${ach?.icon||'🏆'} ${ach?.tip||''}</span>`;
     }).join("");
@@ -697,10 +720,12 @@ function renderMilestones(){
         { name:"Crit 25%", done:()=>G.critChance>=0.25, icon:"🎯" },
         { name:"Prestige 1", done:()=>G.prestige>=1, icon:"🌀" },
         { name:"The End…", done:()=>G.zoneIdx>=THE_END_IDX, icon:"🏁" },
+        { name:"1M GPS", done:()=>calcGPS()>=1e6, icon:"⚡" },
+        { name:"Pet collection", done:()=>pets.length>=3, icon:"🐾" }
     ];
     milestoneDiv.innerHTML = milestones.map(m=>`<div class="stat-row"><span>${m.icon} ${m.name}</span><span>${m.done()?"✔️":"⏳"}</span></div>`).join("");
 }
-// Tabs
+// Tabs & Statistics
 document.querySelectorAll(".tab").forEach(btn=>{
     btn.addEventListener("click",()=>{
         let tabId = btn.getAttribute("data-tab");
@@ -711,11 +736,17 @@ document.querySelectorAll(".tab").forEach(btn=>{
         if(tabId==="goal") renderMilestones();
         if(tabId==="pet") renderPets();
         if(tabId==="lb") renderLB();
+        if(tabId==="shop") renderPrestigeShop();
     });
 });
-// Production & init
+document.getElementById("statsBtn").addEventListener("click",()=>{
+    document.getElementById("overlayTitle").innerText = "📊 Statistics";
+    document.getElementById("overlayMsg").innerHTML = `Total Clicks: ${fmt(G.totalClicks)}<br>Max Combo: ${G.maxCombo}<br>Bosses Defeated: ${G.bossesDefeated}<br>Pets Owned: ${pets.length}<br>Achievements: ${earnedAchievements.size}/${ACH_LIST.length}<br>Lifetime Gas: ${fmt(G.totalGas)}`;
+    document.getElementById("overlay").classList.add("show");
+});
+document.getElementById("overlayClose").addEventListener("click",()=>document.getElementById("overlay").classList.remove("show"));
 function startProduction(){ if(prodInterval) clearInterval(prodInterval); prodInterval = setInterval(()=>{ addGas(calcGPS()/10, true); }, 100); }
-function saveGame(){ localStorage.setItem("beanSave",JSON.stringify({ G, buildings:BUILDINGS.map(b=>({id:b.id,count:b.count})), upgrades:UPGRADES.map(u=>({id:u.id,bought:u.bought})), boosts:buildingBoosts, pets, earned:[...earnedAchievements] })); }
+function saveGame(){ localStorage.setItem("beanSave",JSON.stringify({ G, buildings:BUILDINGS.map(b=>({id:b.id,count:b.count})), upgrades:UPGRADES.map(u=>({id:u.id,bought:u.bought})), boosts:buildingBoosts, pets, earned:[...earnedAchievements], prestigeShop:prestigeShopUpgrades })); }
 function loadGame(){
     let raw = localStorage.getItem("beanSave");
     if(!raw) return;
@@ -726,17 +757,15 @@ function loadGame(){
     if(data.boosts) buildingBoosts=data.boosts;
     if(data.pets) pets=data.pets;
     if(data.earned) earnedAchievements=new Set(data.earned);
+    if(data.prestigeShop) Object.assign(prestigeShopUpgrades, data.prestigeShop);
     renderUpgrades(); renderBuildings(); renderPets(); renderAchievements(); updateUI(); startAutoClick();
 }
-// event listeners
 document.getElementById("beanBtn").addEventListener("click", clickBean);
 document.getElementById("prestigeBtn").addEventListener("click", doPrestige);
 document.getElementById("openCrateBtn").addEventListener("click", openPetCrate);
 document.getElementById("submitScoreBtn").addEventListener("click", submitScore);
-document.getElementById("overlayClose").addEventListener("click",()=>document.getElementById("overlay").classList.remove("show"));
-window.startProduction = startProduction;
 loadGame(); startProduction(); setInterval(saveGame, 15000); setInterval(updateUI, 400);
-renderUpgrades(); renderBuildings(); renderAchievements(); loadLB(); updateUI();
+renderUpgrades(); renderBuildings(); renderAchievements(); loadLB(); renderPrestigeShop(); updateUI();
 </script>
 </body>
 </html>
