@@ -1,581 +1,934 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Bean Empire – Endgame at 1M Gas</title>
-    <style>
-        * { user-select: none; box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            background: radial-gradient(circle at 20% 30%, #0a0f1a, #020408);
-            font-family: 'Segoe UI', 'Courier New', monospace;
-            color: #f0f3fa;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        .game-container {
-            max-width: 1400px;
-            width: 100%;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 24px;
-            background: rgba(10, 15, 25, 0.7);
-            backdrop-filter: blur(12px);
-            border-radius: 48px;
-            padding: 24px;
-            border: 1px solid #ffcf7a60;
-        }
-        .left-panel { flex: 1.5; min-width: 280px; }
-        .right-panel { flex: 1; min-width: 320px; background: #0b101acc; border-radius: 40px; padding: 16px; }
-        .bean-card { text-align: center; background: #1a1f2c; border-radius: 60px; padding: 20px; margin-bottom: 20px; border: 1px solid #c9a87b; }
-        .bean { font-size: 160px; cursor: pointer; display: inline-block; transition: transform 0.05s; filter: drop-shadow(0 12px 12px black); }
-        .bean:active { transform: scale(0.92); }
-        .click-hint { font-size: 0.9rem; opacity: 0.8; margin-top: 8px; }
-        .combo { font-size: 1.2rem; font-weight: bold; color: #ffaa55; margin-top: 10px; }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            gap: 12px;
-            background: #0b101acc;
-            border-radius: 40px;
-            padding: 16px;
-            margin-bottom: 20px;
-        }
-        .stat { background: #04070e; border-radius: 32px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: baseline; }
-        .stat label { font-size: 0.7rem; color: #ccb38c; }
-        .stat span { font-size: 1.4rem; color: #ffde9e; font-weight: bold; }
-        .zone-area { background: #0f1420aa; border-radius: 40px; padding: 12px; margin-bottom: 20px; }
-        .progress-label { font-size: 0.8rem; margin-bottom: 6px; color: #ffdd99; }
-        .progress-bar { background: #1e2a2a; border-radius: 30px; height: 18px; overflow: hidden; }
-        .fill { width: 0%; height: 100%; background: linear-gradient(90deg, #f5bc70, #ffdd77); transition: width 0.2s; }
-        .event-toast { background: #000000aa; border-radius: 30px; padding: 10px; text-align: center; margin: 10px 0; }
-        .boss-alert { background: #8b1a2c; border-radius: 30px; padding: 8px; text-align: center; cursor: pointer; }
-        .hidden { display: none; }
-        .tab-bar { display: flex; gap: 8px; margin-bottom: 20px; }
-        .tab-btn { background: #1e242f; border: none; padding: 8px 16px; border-radius: 40px; color: white; cursor: pointer; flex: 1; }
-        .tab-btn.active { background: #f5bc70; color: #1a1f2c; font-weight: bold; }
-        .tab-content { display: block; }
-        .tab-content.hidden { display: none; }
-        .upgrade-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .upgrade-header button { background: #2a2f3a; border: none; padding: 6px 12px; border-radius: 30px; cursor: pointer; }
-        .upgrade-grid { display: flex; flex-direction: column; gap: 10px; max-height: 380px; overflow-y: auto; }
-        .upgrade { background: #1e242f; padding: 10px; border-radius: 30px; cursor: pointer; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; }
-        .upgrade:hover { background: #2d3545; transform: scale(0.98); }
-        .upgrade .cost { color: #ffbc6e; font-weight: bold; margin-left: 8px; }
-        .upgrade .desc { width: 100%; font-size: 0.7rem; opacity: 0.7; margin-top: 4px; }
-        .prestige-row { margin-top: 15px; }
-        .crate-area { text-align: center; margin-bottom: 20px; }
-        .crate-btn { background: #f5bc70; border: none; padding: 10px 20px; border-radius: 40px; font-weight: bold; cursor: pointer; }
-        .pet-inventory { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; max-height: 250px; overflow-y: auto; margin: 10px 0; }
-        .pet-card { background: #1a202c; border-radius: 24px; padding: 8px; text-align: center; cursor: pointer; }
-        .pet-card.equipped { border: 2px solid gold; }
-        .small-btn { background: #2a2f3a; border: none; padding: 6px 12px; border-radius: 30px; cursor: pointer; margin-top: 8px; }
-        .leaderboard-input { display: flex; gap: 8px; margin-bottom: 16px; }
-        #playerName { flex: 1; background: #2a2f3a; border: none; border-radius: 40px; padding: 8px 12px; color: white; }
-        #submitScoreBtn { background: #f5bc70; border: none; border-radius: 40px; padding: 8px 16px; cursor: pointer; }
-        .leaderboard-list { max-height: 280px; overflow-y: auto; }
-        .leaderboard-entry { background: #1a202c; margin: 6px 0; padding: 8px 12px; border-radius: 28px; display: flex; justify-content: space-between; }
-        .toast { position: fixed; bottom: 20px; left: 20px; background: #2a5a2acc; backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 40px; animation: slideFade 3s forwards; z-index: 3000; }
-        @keyframes slideFade { 0% { opacity: 0; transform: translateX(-20px); } 20% { opacity: 1; transform: translateX(0); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateX(-20px); visibility: hidden; } }
-        .cutscene { position: fixed; inset: 0; background: #000000ee; backdrop-filter: blur(20px); display: flex; justify-content: center; align-items: center; z-index: 2000; animation: fadeOut 4s forwards; }
-        .cutscene-text { background: #000000aa; padding: 40px; border-radius: 80px; font-size: 2rem; text-align: center; }
-        @keyframes fadeOut { 0% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Bean Empire</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #08090d;
+  --surface: #0f1118;
+  --surface2: #171923;
+  --border: #ffffff0d;
+  --border2: #ffffff18;
+  --accent: #f0c040;
+  --accent2: #e8803a;
+  --accent3: #7ed4b0;
+  --text: #f0eeea;
+  --muted: #8a8070;
+  --danger: #e05555;
+  --glow: #f0c04033;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+
+body {
+  background: var(--bg);
+  font-family: 'Syne', sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* ─── NOISE OVERLAY ─── */
+body::before {
+  content:''; position:fixed; inset:0; pointer-events:none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  z-index:9999; opacity:0.4;
+}
+
+/* ─── TOP BAR ─── */
+header {
+  width: 100%; max-width: 1100px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px 0;
+}
+.logo {
+  font-size: 1.5rem; font-weight: 800; letter-spacing: -0.03em;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.header-stats {
+  display: flex; gap: 20px;
+}
+.hstat {
+  display: flex; flex-direction: column; align-items: flex-end;
+}
+.hstat label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; font-family: 'Space Mono', monospace; }
+.hstat span { font-size: 1.1rem; font-weight: 700; color: var(--accent); font-family: 'Space Mono', monospace; }
+
+/* ─── MAIN LAYOUT ─── */
+.layout {
+  width: 100%; max-width: 1100px;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 16px;
+  padding: 20px 24px 40px;
+}
+
+/* ─── PANELS ─── */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+}
+.panel-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.panel-title {
+  font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--muted); font-family: 'Space Mono', monospace;
+}
+
+/* ─── BEAN PANEL ─── */
+.bean-panel {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 28px 20px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.bean-panel::before {
+  content:''; position:absolute; bottom:-60px; left:50%; transform:translateX(-50%);
+  width:260px; height:260px; border-radius:50%;
+  background: radial-gradient(circle, var(--glow), transparent 70%);
+  pointer-events:none;
+}
+
+.bean-emoji {
+  font-size: 110px; cursor: pointer; line-height: 1;
+  transition: transform 0.06s cubic-bezier(.34,1.56,.64,1), filter 0.1s;
+  filter: drop-shadow(0 16px 32px rgba(240,192,64,0.15));
+  position: relative; z-index: 1;
+}
+.bean-emoji:active { transform: scale(0.88) rotate(-3deg); filter: drop-shadow(0 4px 8px rgba(240,192,64,0.4)); }
+
+.combo-bar {
+  width: 100%; height: 4px;
+  background: var(--surface2);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.combo-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent2), var(--accent));
+  width: 0%;
+  transition: width 0.15s;
+  border-radius: 10px;
+}
+.combo-label {
+  font-size: 0.78rem; color: var(--accent); font-family: 'Space Mono', monospace;
+  font-weight: 700;
+}
+
+/* Gas display */
+.gas-big {
+  text-align: center;
+}
+.gas-big .num {
+  font-size: 2.4rem; font-weight: 800; font-family: 'Space Mono', monospace;
+  color: var(--accent); letter-spacing: -0.04em;
+  line-height: 1;
+}
+.gas-big .label {
+  font-size: 0.65rem; color: var(--muted); text-transform: uppercase;
+  letter-spacing: 0.12em; margin-top: 2px;
+}
+
+/* Stat grid */
+.stat-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 8px; width: 100%;
+}
+.stat-cell {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 10px;
+}
+.stat-cell label { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; display: block; font-family: 'Space Mono', monospace; }
+.stat-cell span { font-size: 1rem; font-weight: 700; color: var(--text); font-family: 'Space Mono', monospace; }
+
+/* Zone progress */
+.zone-block { width: 100%; }
+.zone-top {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 6px;
+}
+.zone-name { font-size: 0.85rem; font-weight: 700; }
+.zone-target { font-size: 0.65rem; color: var(--muted); font-family: 'Space Mono', monospace; }
+.zone-bar {
+  height: 6px; background: var(--surface2); border-radius: 10px; overflow: hidden;
+}
+.zone-progress {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent3), var(--accent));
+  border-radius: 10px;
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+/* Event / Boss */
+.event-box {
+  width: 100%; background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 0.78rem; color: var(--muted);
+  text-align: center; min-height: 36px;
+  display: flex; align-items: center; justify-content: center;
+}
+.boss-box {
+  width: 100%; background: linear-gradient(135deg, #3a0a0a, #200808);
+  border: 1px solid var(--danger);
+  border-radius: 12px; padding: 10px 14px;
+  cursor: pointer; display: none; text-align: center;
+  font-size: 0.82rem; font-weight: 700;
+  animation: bossGlow 1.5s ease-in-out infinite alternate;
+}
+.boss-box.visible { display: block; }
+@keyframes bossGlow {
+  from { box-shadow: 0 0 0px #e0555555; }
+  to { box-shadow: 0 0 18px #e0555580; }
+}
+
+/* ─── RIGHT SIDE ─── */
+.right-col {
+  display: flex; flex-direction: column; gap: 16px;
+}
+
+/* Tabs */
+.tab-row {
+  display: flex; gap: 4px;
+  background: var(--surface2);
+  border-radius: 14px; padding: 4px;
+  border: 1px solid var(--border);
+}
+.tab {
+  flex: 1; padding: 8px; border-radius: 10px;
+  background: transparent; border: none; cursor: pointer;
+  font-family: 'Syne', sans-serif; font-size: 0.75rem;
+  font-weight: 700; color: var(--muted); transition: all 0.2s;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.tab.on { background: var(--surface); color: var(--accent); box-shadow: 0 1px 8px #0006; }
+
+/* ─── UPGRADES ─── */
+.upgrades-area { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.upgrade-list { display: flex; flex-direction: column; gap: 8px; flex: 1; overflow-y: auto; max-height: 320px; }
+.upgrade-list::-webkit-scrollbar { width: 4px; }
+.upgrade-list::-webkit-scrollbar-track { background: transparent; }
+.upgrade-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 10px; }
+
+.upg {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 11px 14px;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 12px;
+  transition: all 0.15s;
+}
+.upg:hover { border-color: var(--border2); background: #1e2430; transform: translateX(2px); }
+.upg:active { transform: scale(0.98); }
+.upg.cant { opacity: 0.45; cursor: not-allowed; }
+.upg-icon { font-size: 1.5rem; flex-shrink: 0; }
+.upg-info { flex: 1; min-width: 0; }
+.upg-name { font-size: 0.82rem; font-weight: 700; }
+.upg-desc { font-size: 0.65rem; color: var(--muted); margin-top: 2px; }
+.upg-cost { font-family: 'Space Mono', monospace; font-size: 0.8rem; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+
+.pager { display: flex; align-items: center; justify-content: center; gap: 12px; }
+.pager button { background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 4px 12px; cursor: pointer; font-family: 'Space Mono', monospace; font-size: 0.75rem; transition: all 0.15s; }
+.pager button:hover { border-color: var(--accent); color: var(--accent); }
+.pager button:disabled { opacity: 0.3; cursor: default; }
+.pager span { font-size: 0.7rem; color: var(--muted); font-family: 'Space Mono', monospace; }
+
+/* Prestige */
+.prestige-btn {
+  width: 100%; padding: 11px;
+  background: linear-gradient(135deg, #1f1a30, #0f1520);
+  border: 1px solid #6040c0;
+  border-radius: 14px; cursor: pointer;
+  font-family: 'Syne', sans-serif; font-size: 0.82rem; font-weight: 700;
+  color: #a080ff; transition: all 0.2s; text-align: left;
+}
+.prestige-btn:hover { background: #1f1a40; box-shadow: 0 0 12px #6040c030; }
+.prestige-btn small { display: block; font-size: 0.65rem; color: #7060aa; margin-top: 2px; font-weight: 400; }
+
+/* ─── PETS ─── */
+.pets-area { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.crate-btn {
+  width: 100%; padding: 12px;
+  background: linear-gradient(135deg, #1e2a18, #0d1a10);
+  border: 1px solid var(--accent3);
+  border-radius: 14px; cursor: pointer;
+  font-family: 'Syne', sans-serif; font-size: 0.85rem; font-weight: 700;
+  color: var(--accent3); transition: all 0.2s;
+}
+.crate-btn:hover { box-shadow: 0 0 14px #7ed4b030; }
+.crate-result { font-size: 0.8rem; text-align: center; color: var(--accent); min-height: 20px; }
+
+.pet-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-height: 250px; overflow-y: auto; }
+.pet-card {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 8px; text-align: center; cursor: pointer;
+  transition: all 0.15s; font-size: 0.72rem;
+}
+.pet-card.on { border-color: var(--accent); background: #1e1c14; }
+.pet-card:hover { border-color: var(--border2); }
+.pet-name { font-weight: 700; font-size: 0.72rem; margin-bottom: 2px; }
+.pet-bonus { color: var(--accent3); font-family: 'Space Mono', monospace; font-size: 0.65rem; }
+.auto-equip-btn {
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); border-radius: 10px; padding: 7px; cursor: pointer;
+  font-family: 'Syne', sans-serif; font-size: 0.75rem; font-weight: 700;
+  width: 100%; transition: all 0.15s;
+}
+.auto-equip-btn:hover { border-color: var(--accent); color: var(--accent); }
+.equipped-label { font-size: 0.68rem; color: var(--muted); text-align: center; }
+
+/* ─── LEADERBOARD ─── */
+.lb-area { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.lb-input-row { display: flex; gap: 8px; }
+#playerName {
+  flex: 1; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 8px 12px; color: var(--text);
+  font-family: 'Syne', sans-serif; font-size: 0.8rem; outline: none;
+}
+#playerName:focus { border-color: var(--accent); }
+.submit-btn {
+  background: var(--accent); border: none; border-radius: 10px; padding: 8px 14px;
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.78rem;
+  cursor: pointer; color: #0a0a08; transition: all 0.15s;
+}
+.submit-btn:hover { opacity: 0.85; }
+.lb-list { display: flex; flex-direction: column; gap: 6px; max-height: 300px; overflow-y: auto; }
+.lb-entry {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 8px 12px;
+}
+.lb-rank { font-size: 0.75rem; color: var(--muted); font-family: 'Space Mono', monospace; width: 24px; }
+.lb-name { flex: 1; font-size: 0.8rem; font-weight: 700; }
+.lb-score { font-family: 'Space Mono', monospace; font-size: 0.78rem; color: var(--accent); }
+.lb-note { font-size: 0.65rem; color: var(--muted); text-align: center; font-family: 'Space Mono', monospace; }
+
+/* ─── TOAST ─── */
+.toast {
+  position: fixed; bottom: 24px; left: 24px; z-index: 9000;
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 50px; padding: 8px 18px;
+  font-size: 0.78rem; font-weight: 700;
+  box-shadow: 0 4px 20px #0008;
+  animation: toastAnim 2.8s forwards;
+  pointer-events: none;
+}
+@keyframes toastAnim {
+  0% { opacity:0; transform: translateY(12px); }
+  15% { opacity:1; transform: translateY(0); }
+  75% { opacity:1; }
+  100% { opacity:0; transform: translateY(-8px); }
+}
+
+/* ─── CLICK FLOAT ─── */
+.float-num {
+  position: fixed; pointer-events: none; z-index: 8000;
+  font-family: 'Space Mono', monospace; font-weight: 700;
+  font-size: 1.1rem; color: var(--accent);
+  animation: floatUp 0.9s forwards;
+}
+.float-num.crit { color: var(--accent2); font-size: 1.5rem; }
+@keyframes floatUp {
+  0% { opacity:1; transform: translateY(0) scale(1); }
+  100% { opacity:0; transform: translateY(-70px) scale(0.8); }
+}
+
+/* ─── CUTSCENE ─── */
+.cutscene {
+  position: fixed; inset: 0; background: #000000f0;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 10000; backdrop-filter: blur(20px);
+  animation: csFade 5s forwards;
+}
+.cutscene.gone { display: none; }
+.cs-text {
+  text-align: center; max-width: 500px;
+  font-size: 1.6rem; font-weight: 800; line-height: 1.5;
+  color: var(--accent);
+}
+.cs-text small { display:block; font-size:0.9rem; color:var(--muted); font-weight:400; margin-top:12px; }
+@keyframes csFade {
+  0% { opacity:0; } 15% { opacity:1; } 80% { opacity:1; } 100% { opacity:0; }
+}
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 720px) {
+  .layout { grid-template-columns: 1fr; }
+  .header-stats { display: none; }
+  .bean-emoji { font-size: 80px; }
+  .gas-big .num { font-size: 1.8rem; }
+}
+
+.tab-section { display: none; }
+.tab-section.on { display: flex; flex-direction: column; }
+</style>
 </head>
 <body>
-<div class="game-container">
-    <div class="left-panel">
-        <div class="bean-card">
-            <div class="bean" id="bean">🫘</div>
-            <div class="click-hint">Click the Bean</div>
-            <div id="comboDisplay" class="combo">⚡ Combo: 0</div>
+
+<header>
+  <div class="logo">🫘 Bean Empire</div>
+  <div class="header-stats">
+    <div class="hstat"><label>Prestige</label><span id="hPrestige">0</span></div>
+    <div class="hstat"><label>Fracture</label><span id="hFracture">0</span></div>
+    <div class="hstat"><label>Gas/sec</label><span id="hGPS">0</span></div>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- LEFT: bean + stats -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+
+    <div class="bean-panel">
+      <div class="gas-big">
+        <div class="num" id="gasNum">0</div>
+        <div class="label">💨 Total Gas</div>
+      </div>
+
+      <div id="beanEl" class="bean-emoji" onclick="clickBean(event)">🫘</div>
+
+      <div style="width:100%;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+          <span class="combo-label" id="comboLabel">⚡ Combo ×0</span>
+          <span style="font-size:0.7rem;color:var(--muted);font-family:'Space Mono',monospace;" id="clickPwrLabel">PWR 1</span>
         </div>
-        <div class="stats-grid">
-            <div class="stat"><label>💨 Gas</label><span id="gasValue">0</span></div>
-            <div class="stat"><label>⚡ Click Power</label><span id="powerValue">1</span></div>
-            <div class="stat"><label>🌍 World</label><span id="worldName">Seed Patch</span></div>
-            <div class="stat"><label>🤖 Bots</label><span id="botCount">0</span></div>
-            <div class="stat"><label>⚙️ Gas/sec</label><span id="prodValue">0</span></div>
-            <div class="stat"><label>🌀 Fracture</label><span id="fracturePoints">0</span></div>
-            <div class="stat"><label>🧬 Prestige</label><span id="prestigeLv">0</span></div>
+        <div class="combo-bar"><div class="combo-fill" id="comboFill"></div></div>
+      </div>
+
+      <div class="zone-block">
+        <div class="zone-top">
+          <span class="zone-name" id="zoneName">Seed Patch</span>
+          <span class="zone-target" id="zoneTarget">→ 100</span>
         </div>
-        <div class="zone-area">
-            <div class="progress-label">Next world at: <span id="nextZoneGas">100</span> total gas</div>
-            <div class="progress-bar"><div id="zoneFill" class="fill"></div></div>
-        </div>
-        <div id="eventMessage" class="event-toast">✨ Events appear here ✨</div>
-        <div id="bossAlert" class="boss-alert hidden" onclick="defeatBoss()">⚠️ BOSS ACTIVE ⚠️</div>
+        <div class="zone-bar"><div class="zone-progress" id="zoneBar"></div></div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-cell"><label>🌍 World</label><span id="sWorld">0</span></div>
+        <div class="stat-cell"><label>🤖 Bots</label><span id="sBots">0</span></div>
+        <div class="stat-cell"><label>⚙️ /sec</label><span id="sProd">0</span></div>
+        <div class="stat-cell"><label>🌀 Fracture</label><span id="sFrac">0</span></div>
+      </div>
+
+      <div class="event-box" id="eventBox">✨ Events appear here</div>
+      <div class="boss-box" id="bossBox" onclick="defeatBoss()">⚠️ Boss Active — click to defeat</div>
     </div>
 
-    <div class="right-panel">
-        <div class="tab-bar">
-            <button class="tab-btn active" data-tab="upgrades" onclick="switchTab('upgrades')">⚡ Upgrades</button>
-            <button class="tab-btn" data-tab="pets" onclick="switchTab('pets')">🐾 Pets & Crates</button>
-            <button class="tab-btn" data-tab="leaderboard" onclick="switchTab('leaderboard')">🏆 Leaderboard</button>
-        </div>
+  </div>
 
-        <div id="upgradesTab" class="tab-content active">
-            <div class="upgrade-header">
-                <button onclick="prevPage()">◀</button>
-                <span>Page <span id="pageNum">1</span> / <span id="totalPages">2</span></span>
-                <button onclick="nextPage()">▶</button>
-            </div>
-            <div id="upgradeList" class="upgrade-grid"></div>
-            <div class="prestige-row">
-                <div class="upgrade" onclick="performPrestige()">
-                    <span>🌀 Quantum Leap</span>
-                    <span class="cost" id="prestigeReq">Reach last world</span>
-                    <div class="desc">Reset progress, gain Fracture & permanent multiplier</div>
-                </div>
-            </div>
-        </div>
+  <!-- RIGHT: tabs -->
+  <div class="right-col">
 
-        <div id="petsTab" class="tab-content hidden">
-            <div class="crate-area">
-                <button class="crate-btn" onclick="openCrate()">📦 Open Pet Crate (100 gas)</button>
-                <div id="crateResult"></div>
-            </div>
-            <h4>Your Pets</h4>
-            <div id="petInventory" class="pet-inventory"></div>
-            <div class="equip-info">Equipped pets (max 3): <span id="equippedList">None</span></div>
-            <button class="small-btn" onclick="autoEquipBest()">⚡ Auto-Equip Best</button>
-        </div>
-
-        <div id="leaderboardTab" class="tab-content hidden">
-            <div class="leaderboard-input">
-                <input type="text" id="playerName" placeholder="Your name" maxlength="12">
-                <button onclick="submitLeaderboardScore()">Submit Score</button>
-            </div>
-            <div id="leaderboardList" class="leaderboard-list">Loading...</div>
-            <div class="leaderboard-note">* Score = Fracture + Prestige × 10</div>
-        </div>
+    <div class="tab-row">
+      <button class="tab on" data-tab="upgrades" onclick="switchTab('upgrades')">⚡ Upgrades</button>
+      <button class="tab" data-tab="pets" onclick="switchTab('pets')">🐾 Pets</button>
+      <button class="tab" data-tab="leaderboard" onclick="switchTab('leaderboard')">🏆 Scores</button>
     </div>
+
+    <!-- UPGRADES -->
+    <div class="panel tab-section on" id="upgradesTab">
+      <div class="upgrades-area">
+        <div class="pager">
+          <button id="prevBtn" onclick="prevPage()">◀</button>
+          <span id="pageLabel">Page 1 / 2</span>
+          <button id="nextBtn" onclick="nextPage()">▶</button>
+        </div>
+        <div class="upgrade-list" id="upgradeList"></div>
+        <button class="prestige-btn" onclick="performPrestige()">
+          🌀 Quantum Leap (Prestige)
+          <small id="prestigeNote">Reach "The End..." to unlock</small>
+        </button>
+      </div>
+    </div>
+
+    <!-- PETS -->
+    <div class="panel tab-section" id="petsTab">
+      <div class="pets-area">
+        <button class="crate-btn" onclick="openCrate()">📦 Open Pet Crate — 100 gas</button>
+        <div class="crate-result" id="crateResult"></div>
+        <div class="pet-grid" id="petGrid"></div>
+        <div class="equipped-label" id="equippedLabel">Equipped: none (max 3)</div>
+        <button class="auto-equip-btn" onclick="autoEquipBest()">⚡ Auto-Equip Best 3</button>
+      </div>
+    </div>
+
+    <!-- LEADERBOARD -->
+    <div class="panel tab-section" id="leaderboardTab">
+      <div class="lb-area">
+        <div class="lb-input-row">
+          <input type="text" id="playerName" placeholder="Your name" maxlength="12">
+          <button class="submit-btn" onclick="submitScore()">Submit</button>
+        </div>
+        <div class="lb-list" id="lbList"></div>
+        <div class="lb-note">Score = Fracture pts + Prestige × 10</div>
+      </div>
+    </div>
+
+  </div>
 </div>
 
-<div id="cutsceneOverlay" class="cutscene hidden">
-    <div id="cutsceneText" class="cutscene-text"></div>
+<div class="cutscene gone" id="cutscene">
+  <div class="cs-text" id="csText"></div>
 </div>
 
 <script>
-    // ========== ZONES ==========
-    const baseZones = [
-        "Seed Patch","Bean Field","Forest Floor","Forest Canopy","Backyard",
-        "Main Street","City Skyline","Skyscraper Roof","Cloud Bridge","Cloud Layer",
-        "High Clouds","Wind Corridor","Airplane Route","Jet Stream","Upper Atmosphere",
-        "Stratosphere","Mesosphere","Thermosphere","Exosphere","Low Orbit",
-        "Satellite Belt","Earth Orbit","Lunar Route","Lunar Zone","Moon Surface",
-        "Dark Side of the Moon","Asteroid Belt","Asteroid Highway","Mars Approach","Mars Orbit",
-        "Martian Frontier","Outer Planet Route","Ring World","Deep Space","Nebula Edge",
-        "Cosmic Clouds","Stellar Nursery","Star Cluster","Supernova Remnant","Galactic Rim",
-        "Galactic Highway","Galactic Center","Galactic Core","Intergalactic Void",
-        "Cosmic Nexus","Quantum Realm","Black Hole Edge","Universal Throne","Beanfinity",
-        "The End..."
-    ];
-    const postZones = [
-        "Reality Fracture", "Memory Overflow", "Developer Layer", "Code Ocean", "Simulation Backbone",
-        "Render Dimension", "Null Space", "Anti-Existence Field", "Broken Continuum", "Lost Variables Zone",
-        "Paradox Plains", "Infinite Loop Realm", "God Debug Room", "Pre-Genesis State", "Post-Story World",
-        "Unwritten Chapter", "Canvas of Nothing", "Admin Control Plane", "Bean Source Code Core", "True Origin Point",
-        "Beyond Infinity", "Outside The Game", "You Are Here (But Not Really)", "Hidden Layer 51", "Final Finality"
-    ];
-    const allZones = [...baseZones, ...postZones];
+// ═══════════════════════════════════════════
+// ZONES
+// ═══════════════════════════════════════════
+const BASE_ZONES = [
+  "Seed Patch","Bean Field","Forest Floor","Forest Canopy","Backyard",
+  "Main Street","City Skyline","Skyscraper Roof","Cloud Bridge","Cloud Layer",
+  "High Clouds","Wind Corridor","Airplane Route","Jet Stream","Upper Atmosphere",
+  "Stratosphere","Mesosphere","Thermosphere","Exosphere","Low Orbit",
+  "Satellite Belt","Earth Orbit","Lunar Route","Lunar Zone","Moon Surface",
+  "Dark Side of the Moon","Asteroid Belt","Asteroid Highway","Mars Approach","Mars Orbit",
+  "Martian Frontier","Outer Planet Route","Ring World","Deep Space","Nebula Edge",
+  "Cosmic Clouds","Stellar Nursery","Star Cluster","Supernova Remnant","Galactic Rim",
+  "Galactic Highway","Galactic Center","Galactic Core","Intergalactic Void",
+  "Cosmic Nexus","Quantum Realm","Black Hole Edge","Universal Throne","Beanfinity",
+  "The End..."
+];
+const POST_ZONES = [
+  "Reality Fracture","Memory Overflow","Developer Layer","Code Ocean","Simulation Backbone",
+  "Render Dimension","Null Space","Anti-Existence Field","Broken Continuum","Lost Variables Zone",
+  "Paradox Plains","Infinite Loop Realm","God Debug Room","Pre-Genesis State","Post-Story World",
+  "Unwritten Chapter","Canvas of Nothing","Admin Control Plane","Bean Source Code Core","True Origin Point",
+  "Beyond Infinity","Outside The Game","You Are Here (But Not Really)","Hidden Layer 51","Final Finality"
+];
+const ALL_ZONES = [...BASE_ZONES, ...POST_ZONES];
 
-    // Game state
-    let gas = 0;
-    let clickPower = 1;
-    let bots = 0;
-    let botEfficiency = 1;
-    let prestigeLevel = 0;
-    let globalMult = 1.0;
-    let fracturePoints = 0;
-    let combo = 0;
-    let comboTimeout = null;
-    let critChance = 0.05;
-    let doubleChance = 0;
-    let autoClickActive = false;
-    let autoClickInterval = null;
-    let petBonusMult = 1;
+function zoneThreshold(i) {
+  if (i <= 0) return 0;
+  return Math.floor(100 * Math.pow(i, 2.366));
+}
 
-    // Upgrade data (scalable)
-    let upgradeData = [
-        { id: "click", name: "💨 Stronger Farts", baseCost: 50, cost: 50, effect: () => clickPower++, desc: "+1 click power", multiplier: 1.2 },
-        { id: "mega", name: "✨ Mega Burst", baseCost: 200, cost: 200, effect: () => clickPower += 5, desc: "+5 click power", multiplier: 1.25 },
-        { id: "bot", name: "🤖 Auto Bot", baseCost: 120, cost: 120, effect: () => { bots++; startAutoProd(); }, desc: "+1 gas/sec", multiplier: 1.15 },
-        { id: "turbo", name: "⚡ Turbo Nozzle", baseCost: 300, cost: 300, effect: () => botEfficiency++, desc: "+1 per bot/sec", multiplier: 1.2 },
-        { id: "crit", name: "🎯 Critical Eye", baseCost: 500, cost: 500, effect: () => { if(critChance<0.5) critChance+=0.05; }, desc: "+5% crit chance", multiplier: 1.3 },
-        { id: "double", name: "💎 Double Tap", baseCost: 800, cost: 800, effect: () => { if(doubleChance<0.5) doubleChance+=0.1; }, desc: "+10% double gas", multiplier: 1.4 },
-        { id: "autoclick", name: "🖱️ Auto-Clicker", baseCost: 1000, cost: 1000, effect: () => { if(!autoClickActive){ autoClickActive=true; if(autoClickInterval) clearInterval(autoClickInterval); autoClickInterval=setInterval(()=> addGas(clickPower), 1000); } }, desc: "1 click/sec", multiplier: 1.5 }
-    ];
-    let currentPage = 1;
-    let totalPages = Math.ceil(upgradeData.length / 4);
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let gas = 0;
+let clickPower = 1;
+let bots = 0;
+let botEff = 1;
+let prestige = 0;
+let globalMult = 1;
+let fracture = 0;
+let combo = 0;
+let comboTimer = null;
+let critChance = 0.05;
+let doubleChance = 0;
+let autoClickOn = false;
+let autoClickTimer = null;
+let petBonusMult = 1;
+let currentZone = 0;
+let cutscenePlayed = false;
+let activeBoss = null;
+let currentPage = 1;
+const PAGE_SIZE = 4;
 
-    // Pets
-    const petRarities = ["Common","Rare","Epic","Legendary","Ultimate"];
-    const petBonuses = [0.005, 0.02, 0.08, 0.15, 0.3];
-    const petNames = ["Sprout","Beanling","Cosmic Pup","Void Bunny","Elder Bean","Golden Sprout","Nebula Cat"];
-    let ownedPets = [];
+// ═══════════════════════════════════════════
+// UPGRADES
+// ═══════════════════════════════════════════
+const UPGRADES = [
+  { id:"click",  icon:"💨", name:"Stronger Farts",  baseCost:50,   cost:50,   mult:1.2,  desc:"+1 click power",          eff:()=>clickPower++ },
+  { id:"mega",   icon:"✨", name:"Mega Burst",       baseCost:200,  cost:200,  mult:1.25, desc:"+5 click power",          eff:()=>clickPower+=5 },
+  { id:"bot",    icon:"🤖", name:"Auto Bot",         baseCost:120,  cost:120,  mult:1.15, desc:"+1 gas/sec",              eff:()=>{ bots++; startProd(); } },
+  { id:"turbo",  icon:"⚡", name:"Turbo Nozzle",     baseCost:300,  cost:300,  mult:1.2,  desc:"+1 per bot/sec",          eff:()=>botEff++ },
+  { id:"crit",   icon:"🎯", name:"Critical Eye",     baseCost:500,  cost:500,  mult:1.3,  desc:"+5% crit chance",         eff:()=>{ if(critChance<0.5) critChance+=0.05; } },
+  { id:"double", icon:"💎", name:"Double Tap",       baseCost:800,  cost:800,  mult:1.4,  desc:"+10% double chance",      eff:()=>{ if(doubleChance<0.5) doubleChance+=0.1; } },
+  { id:"auto",   icon:"🖱️", name:"Auto-Clicker",    baseCost:1000, cost:1000, mult:1.5,  desc:"1 auto-click/sec",        eff:()=>{ if(!autoClickOn){ autoClickOn=true; if(autoClickTimer)clearInterval(autoClickTimer); autoClickTimer=setInterval(()=>addGas(clickPower),1000); } } },
+];
 
-    // Leaderboard
-    let leaderboard = [];
+// ═══════════════════════════════════════════
+// PETS
+// ═══════════════════════════════════════════
+const PET_RARITIES = ["Common","Rare","Epic","Legendary","Ultimate"];
+const PET_BONUSES  = [0.005, 0.02, 0.08, 0.15, 0.3];
+const PET_NAMES    = ["Sprout","Beanling","Cosmic Pup","Void Bunny","Elder Bean","Golden Sprout","Nebula Cat"];
+let ownedPets = [];
 
-    // DOM
-    const gasSpan = document.getElementById("gasValue");
-    const powerSpan = document.getElementById("powerValue");
-    const worldSpan = document.getElementById("worldName");
-    const botSpan = document.getElementById("botCount");
-    const prodSpan = document.getElementById("prodValue");
-    const fractureSpan = document.getElementById("fracturePoints");
-    const prestigeSpan = document.getElementById("prestigeLv");
-    const zoneFill = document.getElementById("zoneFill");
-    const nextZoneSpan = document.getElementById("nextZoneGas");
-    const eventDiv = document.getElementById("eventMessage");
-    const comboDisplay = document.getElementById("comboDisplay");
-    const bossAlert = document.getElementById("bossAlert");
+// ═══════════════════════════════════════════
+// LEADERBOARD
+// ═══════════════════════════════════════════
+let leaderboard = [];
 
-    let cutscenePlayed = false; // prevent replay
+// ═══════════════════════════════════════════
+// CORE FUNCTIONS
+// ═══════════════════════════════════════════
+function addGas(amount) {
+  let gain = amount * globalMult * petBonusMult;
+  if (Math.random() < doubleChance) gain *= 2;
+  gas += gain;
+  checkZone();
+  updateUI();
+}
 
-    // ========== SCALABLE ZONE THRESHOLDS (The End... ~1,000,000 gas) ==========
-    function getThresholdForZone(zoneIdx) {
-        if (zoneIdx === 0) return 0;
-        // formula: 100 * (zoneIdx ^ 2.366) gives ~1,000,000 at zone 49
-        return Math.floor(100 * Math.pow(zoneIdx, 2.366));
+function checkZone() {
+  let nz = 0;
+  for (let i = ALL_ZONES.length - 1; i >= 0; i--) {
+    if (gas >= zoneThreshold(i)) { nz = i; break; }
+  }
+  if (nz > currentZone) {
+    currentZone = nz;
+    toast(`🌍 ${ALL_ZONES[currentZone]}`);
+    if (currentZone === BASE_ZONES.length - 1 && !cutscenePlayed) {
+      playCutscene();
+      cutscenePlayed = true;
     }
+    if (currentZone >= BASE_ZONES.length) {
+      fracture++;
+      toast(`+1 Fracture Point!`);
+    }
+  }
+}
 
-    function getZoneIndex() {
-        for (let i = allZones.length-1; i >= 0; i--) {
-            if (gas >= getThresholdForZone(i)) return i;
-        }
-        return 0;
-    }
+function startProd() {
+  if (window._prod) clearInterval(window._prod);
+  window._prod = setInterval(() => { if(bots>0) addGas(bots * botEff); }, 1000);
+}
 
-    let currentZoneIndex = 0;
+// ═══════════════════════════════════════════
+// CLICK
+// ═══════════════════════════════════════════
+function clickBean(e) {
+  let gain = clickPower;
+  let isCrit = Math.random() < critChance;
+  if (combo > 0) gain = Math.floor(gain * (1 + combo * 0.03));
+  if (isCrit) gain = Math.floor(gain * 2.5);
+  addGas(gain);
 
-    function updateZoneDisplay() {
-        let newZone = getZoneIndex();
-        if (newZone > currentZoneIndex) {
-            currentZoneIndex = newZone;
-            flashToast(`🌍 Reached ${allZones[currentZoneIndex]}!`);
-            // Play cutscene exactly when we first reach "The End..." (baseZones.length-1)
-            if (currentZoneIndex === baseZones.length - 1 && !cutscenePlayed) {
-                playCutscene();
-                cutscenePlayed = true;
-            }
-            if (currentZoneIndex >= baseZones.length) {
-                fracturePoints++;
-                flashToast("+1 Fracture Point!");
-            }
-        }
-        worldSpan.innerText = allZones[currentZoneIndex] || "Infinity";
-        let nextThreshold = getThresholdForZone(currentZoneIndex+1);
-        nextZoneSpan.innerText = nextThreshold.toLocaleString();
-        let progress = (gas / nextThreshold) * 100;
-        if (nextThreshold === 0) progress = 100;
-        zoneFill.style.width = `${Math.min(100, progress)}%`;
-    }
+  // combo
+  if (comboTimer) clearTimeout(comboTimer);
+  combo++;
+  comboTimer = setTimeout(() => { combo = 0; updateComboBar(); }, 3000);
+  updateComboBar();
 
-    // Core resource addition (gas never decreases)
-    function addGas(amount) {
-        let gain = amount * globalMult * petBonusMult;
-        if (Math.random() < doubleChance) gain *= 2;
-        gas += gain;
-        updateZoneDisplay();
-        updateUI();
-    }
+  // bean bounce
+  const bean = document.getElementById("beanEl");
+  bean.style.transform = "scale(0.85) rotate(-4deg)";
+  setTimeout(() => bean.style.transform = "", 90);
 
-    function updateUI() {
-        gasSpan.innerText = Math.floor(gas).toLocaleString();
-        powerSpan.innerText = clickPower;
-        botSpan.innerText = bots;
-        prodSpan.innerText = Math.floor(bots * botEfficiency * globalMult).toLocaleString();
-        fractureSpan.innerText = fracturePoints;
-        prestigeSpan.innerText = prestigeLevel;
-        updateZoneDisplay();
-        saveGame();
-    }
+  // float number
+  spawnFloat(e.clientX, e.clientY, gain, isCrit);
+}
 
-    function startAutoProd() {
-        if (window.prodInterval) clearInterval(window.prodInterval);
-        window.prodInterval = setInterval(() => addGas(bots * botEfficiency), 1000);
-    }
+function updateComboBar() {
+  const lbl = document.getElementById("comboLabel");
+  const fill = document.getElementById("comboFill");
+  lbl.textContent = `⚡ Combo ×${combo}`;
+  fill.style.width = `${Math.min(100, combo * 5)}%`;
+}
 
-    // Combo & Click
-    function incrementCombo() {
-        if (comboTimeout) clearTimeout(comboTimeout);
-        combo++;
-        comboDisplay.innerText = `⚡ Combo: ${combo}`;
-        comboTimeout = setTimeout(() => { combo = 0; comboDisplay.innerText = "⚡ Combo: 0"; }, 3000);
-    }
+function spawnFloat(x, y, amount, isCrit) {
+  const el = document.createElement("div");
+  el.className = "float-num" + (isCrit ? " crit" : "");
+  el.textContent = (isCrit ? "💥 " : "+") + fmtNum(amount);
+  el.style.cssText = `left:${x - 20}px;top:${y - 20}px;`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 950);
+}
 
-    function clickBean() {
-        let gain = clickPower;
-        if (combo > 0) gain = Math.floor(gain * (1 + combo * 0.03));
-        if (Math.random() < critChance) gain = Math.floor(gain * 2.5);
-        addGas(gain);
-        incrementCombo();
-        const bean = document.getElementById("bean");
-        bean.style.transform = "scale(0.92)";
-        setTimeout(() => bean.style.transform = "", 80);
-    }
+// ═══════════════════════════════════════════
+// UI UPDATE
+// ═══════════════════════════════════════════
+function fmtNum(n) {
+  if (n >= 1e9) return (n/1e9).toFixed(2)+"B";
+  if (n >= 1e6) return (n/1e6).toFixed(2)+"M";
+  if (n >= 1e3) return (n/1e3).toFixed(1)+"K";
+  return Math.floor(n).toString();
+}
 
-    // Upgrades
-    function renderUpgrades() {
-        const container = document.getElementById("upgradeList");
-        if (!container) return;
-        const start = (currentPage-1)*4;
-        const page = upgradeData.slice(start, start+4);
-        container.innerHTML = page.map(up => `
-            <div class="upgrade" onclick="buyUpgrade('${up.id}')">
-                <span>${up.name}</span>
-                <span class="cost">${Math.floor(up.cost).toLocaleString()}</span>
-                <div class="desc">${up.desc}</div>
-            </div>
-        `).join("");
-        document.getElementById("pageNum").innerText = currentPage;
-        document.getElementById("totalPages").innerText = totalPages;
-        let prevBtn = document.querySelector("#upgradesTab .upgrade-header button:first-child");
-        let nextBtn = document.querySelector("#upgradesTab .upgrade-header button:last-child");
-        if (prevBtn) prevBtn.disabled = currentPage === 1;
-        if (nextBtn) nextBtn.disabled = currentPage === totalPages;
-    }
+function updateUI() {
+  const g = Math.floor(gas);
+  document.getElementById("gasNum").textContent = fmtNum(g);
+  document.getElementById("clickPwrLabel").textContent = `PWR ${clickPower}`;
+  document.getElementById("sWorld").textContent = currentZone;
+  document.getElementById("sBots").textContent = bots;
+  document.getElementById("sProd").textContent = fmtNum(bots * botEff * globalMult);
+  document.getElementById("sFrac").textContent = fracture;
+  document.getElementById("hPrestige").textContent = prestige;
+  document.getElementById("hFracture").textContent = fracture;
+  document.getElementById("hGPS").textContent = fmtNum(bots * botEff * globalMult);
 
-    function buyUpgrade(id) {
-        const up = upgradeData.find(u => u.id === id);
-        if (gas >= up.cost) {
-            gas -= up.cost;
-            up.effect();
-            up.cost = Math.floor(up.cost * up.multiplier);
-            renderUpgrades();
-            updateUI();
-            flashToast(`Bought ${up.name}`);
-        } else flashToast("Not enough gas!");
-    }
+  // Zone bar
+  const nextT = zoneThreshold(currentZone + 1);
+  const curT  = zoneThreshold(currentZone);
+  const pct   = nextT > 0 ? Math.min(100, ((gas - curT) / (nextT - curT)) * 100) : 100;
+  document.getElementById("zoneBar").style.width = pct + "%";
+  document.getElementById("zoneName").textContent = ALL_ZONES[currentZone] || "∞";
+  document.getElementById("zoneTarget").textContent = "→ " + fmtNum(nextT);
 
-    function nextPage() { if (currentPage < totalPages) { currentPage++; renderUpgrades(); } }
-    function prevPage() { if (currentPage > 1) { currentPage--; renderUpgrades(); } }
+  // Prestige note
+  const canPrestige = currentZone >= BASE_ZONES.length - 1;
+  document.getElementById("prestigeNote").textContent = canPrestige
+    ? `Gain ${5 + Math.floor(gas/1000)} Fracture + Lv${prestige+1} bonus`
+    : `Reach "The End..." first`;
 
-    // Prestige
-    function performPrestige() {
-        if (currentZoneIndex < baseZones.length - 1) { flashToast("Reach 'The End...' first!"); return; }
-        let gained = 5 + Math.floor(gas / 1000);
-        fracturePoints += gained;
-        prestigeLevel++;
-        globalMult = 1 + prestigeLevel * 0.2;
-        // Reset progress
-        gas = 0;
-        clickPower = 1;
-        bots = 0;
-        botEfficiency = 1;
-        currentZoneIndex = 0;
-        upgradeData.forEach(u => u.cost = u.baseCost);
-        if (autoClickInterval) clearInterval(autoClickInterval);
-        autoClickActive = false;
-        critChance = 0.05;
-        doubleChance = 0;
-        cutscenePlayed = false; // allow cutscene again after prestige
-        updateZoneDisplay();
-        updateUI();
-        renderUpgrades();
-        flashToast(`Prestige Lv ${prestigeLevel} | +${gained} Fracture!`);
-        submitLeaderboardScore();
-    }
+  renderUpgrades();
+  saveGame();
+}
 
-    // Random events
-    const events = [
-        { name:"🌱 Bean Rain", act:()=>{ addGas(100); return "+100 gas!"; } },
-        { name:"✨ Golden Bean", act:()=>{ addGas(clickPower*40); return `+${clickPower*40} gas!`; } },
-        { name:"💨 Surge", act:()=>{ let old=globalMult; globalMult*=1.3; setTimeout(()=>{ globalMult=old; updateUI(); }, 30000); return "Global +30% for 30s!"; } },
-        { name:"🔧 Cheap Parts", act:()=>{ upgradeData.forEach(u=>u.cost=Math.floor(u.cost*0.8)); renderUpgrades(); setTimeout(()=>{ upgradeData.forEach(u=>u.cost=Math.floor(u.cost/0.8)); renderUpgrades(); }, 45000); return "Upgrades -20% for 45s!"; } }
-    ];
-    function triggerRandomEvent() {
-        let ev = events[Math.floor(Math.random()*events.length)];
-        let msg = ev.act();
-        eventDiv.innerHTML = `✨ ${ev.name}: ${msg}`;
-        flashToast(msg);
-        setTimeout(()=> eventDiv.innerHTML = "✨ Events appear here ✨", 4000);
-        updateUI();
-    }
+// ═══════════════════════════════════════════
+// UPGRADES RENDER
+// ═══════════════════════════════════════════
+function renderUpgrades() {
+  const list = document.getElementById("upgradeList");
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const slice = UPGRADES.slice(start, start + PAGE_SIZE);
+  const total = Math.ceil(UPGRADES.length / PAGE_SIZE);
+  document.getElementById("pageLabel").textContent = `Page ${currentPage} / ${total}`;
+  document.getElementById("prevBtn").disabled = currentPage === 1;
+  document.getElementById("nextBtn").disabled = currentPage === total;
 
-    // Boss system
-    let activeBoss = null;
-    function trySpawnBoss() {
-        if (currentZoneIndex < 15 || activeBoss) return;
-        if (Math.random() < 0.2) {
-            activeBoss = { name:"🐉 Lag Entity", resolveCost:5 };
-            globalMult *= 0.8;
-            updateUI();
-            bossAlert.innerHTML = `⚠️ BOSS: ${activeBoss.name}! -20% prod. Click to defeat (${activeBoss.resolveCost} FP)`;
-            bossAlert.classList.remove("hidden");
-        }
-    }
-    function defeatBoss() {
-        if (activeBoss && fracturePoints >= activeBoss.resolveCost) {
-            fracturePoints -= activeBoss.resolveCost;
-            globalMult /= 0.8;
-            activeBoss = null;
-            bossAlert.classList.add("hidden");
-            flashToast("Boss defeated!");
-            updateUI();
-        } else flashToast("Not enough Fracture Points");
-    }
-    setInterval(trySpawnBoss, 90000);
-    window.defeatBoss = defeatBoss;
+  list.innerHTML = slice.map(u => {
+    const can = gas >= u.cost;
+    return `<div class="upg${can?'':' cant'}" onclick="buyUpgrade('${u.id}')">
+      <span class="upg-icon">${u.icon}</span>
+      <div class="upg-info">
+        <div class="upg-name">${u.name}</div>
+        <div class="upg-desc">${u.desc}</div>
+      </div>
+      <span class="upg-cost">${fmtNum(u.cost)}</span>
+    </div>`;
+  }).join("");
+}
 
-    // Pets & Crates
-    function getRandomPet() {
-        let roll = Math.random();
-        let idx = roll<0.5 ? 0 : roll<0.75 ? 1 : roll<0.9 ? 2 : roll<0.98 ? 3 : 4;
-        let name = petNames[Math.floor(Math.random()*petNames.length)] + ` (${petRarities[idx]})`;
-        return { id: Date.now()+Math.random(), name, bonus: petBonuses[idx], rarity: idx, equipped: false };
-    }
-    function openCrate() {
-        if (gas < 100) { flashToast("Need 100 gas"); return; }
-        gas -= 100;
-        let pet = getRandomPet();
-        ownedPets.push(pet);
-        document.getElementById("crateResult").innerHTML = `🎁 You got: ${pet.name} (+${(pet.bonus*100).toFixed(1)}% production)!`;
-        renderPetInventory();
-        updateUI();
-        setTimeout(()=> document.getElementById("crateResult").innerHTML = "", 3000);
-    }
-    function renderPetInventory() {
-        const container = document.getElementById("petInventory");
-        if (!container) return;
-        container.innerHTML = ownedPets.map((p,i) => `
-            <div class="pet-card ${p.equipped ? 'equipped' : ''}" onclick="toggleEquip(${i})">
-                <strong>${p.name}</strong><br>
-                +${(p.bonus*100).toFixed(1)}%<br>
-                ${p.equipped ? '✔️' : '🔘'}
-            </div>
-        `).join("");
-        let equippedNames = ownedPets.filter(p=>p.equipped).map(p=>p.name).join(", ");
-        document.getElementById("equippedList").innerText = equippedNames || "None";
-        updatePetBonus();
-    }
-    function toggleEquip(idx) {
-        let pet = ownedPets[idx];
-        if (pet.equipped) pet.equipped = false;
-        else {
-            if (ownedPets.filter(p=>p.equipped).length >= 3) { flashToast("Max 3 pets equipped"); return; }
-            pet.equipped = true;
-        }
-        renderPetInventory();
-    }
-    function autoEquipBest() {
-        ownedPets.forEach(p=>p.equipped=false);
-        let sorted = [...ownedPets].sort((a,b)=>b.bonus - a.bonus);
-        for(let i=0;i<Math.min(3,sorted.length);i++) sorted[i].equipped=true;
-        renderPetInventory();
-    }
-    function updatePetBonus() {
-        let total = ownedPets.filter(p=>p.equipped).reduce((s,p)=>s+p.bonus,0);
-        petBonusMult = 1 + total;
-    }
+function buyUpgrade(id) {
+  const u = UPGRADES.find(x => x.id === id);
+  if (gas < u.cost) { toast("Not enough gas!"); return; }
+  gas -= u.cost;
+  u.eff();
+  u.cost = Math.floor(u.cost * u.mult);
+  toast(`Bought ${u.name}`);
+  updateUI();
+}
 
-    // Leaderboard
-    function loadLeaderboard() {
-        let stored = localStorage.getItem("beanLeaderboard");
-        leaderboard = stored ? JSON.parse(stored) : [];
-        renderLeaderboard();
-    }
-    function renderLeaderboard() {
-        let sorted = [...leaderboard].sort((a,b)=>b.score - a.score).slice(0,10);
-        let html = sorted.map(e => `<div class="leaderboard-entry"><span>${escapeHtml(e.name)}</span><span>${e.score} pts</span></div>`).join("");
-        document.getElementById("leaderboardList").innerHTML = html || "<div>No scores yet. Submit yours!</div>";
-    }
-    function submitLeaderboardScore() {
-        let name = document.getElementById("playerName").value.trim();
-        if (!name) name = "BeanMaster";
-        let score = fracturePoints + prestigeLevel * 10;
-        leaderboard.push({ name, score });
-        leaderboard.sort((a,b)=>b.score - a.score);
-        leaderboard = leaderboard.slice(0,20);
-        localStorage.setItem("beanLeaderboard", JSON.stringify(leaderboard));
-        renderLeaderboard();
-        flashToast("Score submitted!");
-    }
-    function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+function nextPage() { const t = Math.ceil(UPGRADES.length/PAGE_SIZE); if(currentPage<t) { currentPage++; renderUpgrades(); } }
+function prevPage() { if(currentPage>1) { currentPage--; renderUpgrades(); } }
 
-    // Cutscene (fix: ensure it plays exactly once)
-    function playCutscene() {
-        let overlay = document.getElementById("cutsceneOverlay");
-        let textDiv = document.getElementById("cutsceneText");
-        overlay.classList.remove("hidden");
-        textDiv.innerText = "🌀 You reached The End...\nBut the simulation continues...\n✨ Endless worlds await ✨";
-        setTimeout(()=> overlay.classList.add("hidden"), 5000);
-    }
+// ═══════════════════════════════════════════
+// PRESTIGE
+// ═══════════════════════════════════════════
+function performPrestige() {
+  if (currentZone < BASE_ZONES.length - 1) { toast("Reach The End... first!"); return; }
+  const gained = 5 + Math.floor(gas / 1000);
+  fracture += gained;
+  prestige++;
+  globalMult = 1 + prestige * 0.2;
+  gas = 0; clickPower = 1; bots = 0; botEff = 1; currentZone = 0;
+  critChance = 0.05; doubleChance = 0;
+  if (autoClickTimer) clearInterval(autoClickTimer);
+  autoClickOn = false;
+  UPGRADES.forEach(u => u.cost = u.baseCost);
+  cutscenePlayed = false;
+  toast(`🌀 Prestige Lv ${prestige}! +${gained} Fracture`);
+  updateUI();
+}
 
-    // Save / Load
-    function saveGame() {
-        let save = { gas, clickPower, bots, botEfficiency, prestigeLevel, globalMult, fracturePoints,
-                     upgradeCosts: upgradeData.map(u=>u.cost), ownedPets, critChance, doubleChance, autoClickActive,
-                     cutscenePlayed };
-        localStorage.setItem("beanEmpireSave", JSON.stringify(save));
-    }
-    function loadGame() {
-        let raw = localStorage.getItem("beanEmpireSave");
-        if (raw) {
-            let d = JSON.parse(raw);
-            gas = d.gas??0; clickPower = d.clickPower??1; bots = d.bots??0; botEfficiency = d.botEfficiency??1;
-            prestigeLevel = d.prestigeLevel??0; globalMult = d.globalMult??1; fracturePoints = d.fracturePoints??0;
-            critChance = d.critChance??0.05; doubleChance = d.doubleChance??0;
-            autoClickActive = d.autoClickActive??false;
-            cutscenePlayed = d.cutscenePlayed??false;
-            if (d.upgradeCosts) upgradeData.forEach((u,i)=> u.cost = d.upgradeCosts[i]??u.baseCost);
-            if (d.ownedPets) ownedPets = d.ownedPets;
-            if (autoClickActive && !autoClickInterval) autoClickInterval = setInterval(()=> addGas(clickPower), 1000);
-            renderUpgrades();
-            renderPetInventory();
-            updateZoneDisplay();
-            updateUI();
-        }
-        setInterval(saveGame, 30000);
-    }
+// ═══════════════════════════════════════════
+// EVENTS
+// ═══════════════════════════════════════════
+const EVENTS = [
+  { name:"🌱 Bean Rain",    act:()=>{ addGas(100); return "+100 gas!"; } },
+  { name:"✨ Golden Bean",  act:()=>{ const g=clickPower*40; addGas(g); return `+${g} gas!`; } },
+  { name:"💨 Surge",        act:()=>{ const o=globalMult; globalMult*=1.3; updateUI(); setTimeout(()=>{ globalMult=o; updateUI(); },30000); return "+30% mult 30s"; } },
+  { name:"🔧 Cheap Parts",  act:()=>{ UPGRADES.forEach(u=>u.cost=Math.floor(u.cost*0.8)); renderUpgrades(); setTimeout(()=>{ UPGRADES.forEach(u=>u.cost=Math.floor(u.cost/0.8)); renderUpgrades(); },45000); return "-20% costs 45s"; } }
+];
+function triggerEvent() {
+  const ev = EVENTS[Math.floor(Math.random()*EVENTS.length)];
+  const msg = ev.act();
+  document.getElementById("eventBox").textContent = `${ev.name}: ${msg}`;
+  toast(`${ev.name}`);
+  setTimeout(() => document.getElementById("eventBox").textContent = "✨ Events appear here", 5000);
+}
+setInterval(triggerEvent, 75000);
 
-    // Tabs
-    function switchTab(tabId) {
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-        document.getElementById(`${tabId}Tab`).classList.remove('hidden');
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
-    }
-
-    function flashToast(msg, isErr=false) {
-        let t = document.createElement("div");
-        t.className = "toast";
-        t.innerText = msg;
-        t.style.background = isErr ? "#a12222cc" : "#2a5a2acc";
-        document.body.appendChild(t);
-        setTimeout(()=>t.remove(), 2500);
-    }
-
-    // Expose global functions
-    window.clickBean = clickBean;
-    window.buyUpgrade = buyUpgrade;
-    window.nextPage = nextPage;
-    window.prevPage = prevPage;
-    window.performPrestige = performPrestige;
-    window.openCrate = openCrate;
-    window.toggleEquip = toggleEquip;
-    window.autoEquipBest = autoEquipBest;
-    window.submitLeaderboardScore = submitLeaderboardScore;
-    window.defeatBoss = defeatBoss;
-    window.switchTab = switchTab;
-
-    document.getElementById("bean").onclick = clickBean;
-
-    loadGame();
-    loadLeaderboard();
-    renderUpgrades();
-    renderPetInventory();
-    updateZoneDisplay();
+// ═══════════════════════════════════════════
+// BOSS
+// ═══════════════════════════════════════════
+function trySpawnBoss() {
+  if (currentZone < 15 || activeBoss) return;
+  if (Math.random() < 0.2) {
+    activeBoss = { name:"🐉 Lag Entity", cost:5 };
+    globalMult *= 0.8;
     updateUI();
-    updatePetBonus();
-    startAutoProd();
-    setInterval(()=> triggerRandomEvent(), 75000);
-    flashToast("Bean Empire: reach 1M gas for The End! Click the bean.", false);
+    const box = document.getElementById("bossBox");
+    box.textContent = `⚠️ ${activeBoss.name} — -20% prod. Defeat costs ${activeBoss.cost} FP`;
+    box.classList.add("visible");
+  }
+}
+function defeatBoss() {
+  if (!activeBoss) return;
+  if (fracture < activeBoss.cost) { toast("Not enough Fracture Points"); return; }
+  fracture -= activeBoss.cost;
+  globalMult /= 0.8;
+  activeBoss = null;
+  document.getElementById("bossBox").classList.remove("visible");
+  toast("Boss defeated! 🎉");
+  updateUI();
+}
+setInterval(trySpawnBoss, 90000);
+
+// ═══════════════════════════════════════════
+// PETS
+// ═══════════════════════════════════════════
+function rollPet() {
+  const r = Math.random();
+  const idx = r<0.5?0:r<0.75?1:r<0.9?2:r<0.98?3:4;
+  return { id:Date.now()+Math.random(), name:`${PET_NAMES[Math.floor(Math.random()*PET_NAMES.length)]} (${PET_RARITIES[idx]})`, bonus:PET_BONUSES[idx], rarity:idx, equipped:false };
+}
+function openCrate() {
+  if (gas < 100) { toast("Need 100 gas"); return; }
+  gas -= 100;
+  const pet = rollPet();
+  ownedPets.push(pet);
+  document.getElementById("crateResult").textContent = `🎁 ${pet.name} +${(pet.bonus*100).toFixed(1)}%`;
+  setTimeout(() => document.getElementById("crateResult").textContent = "", 3500);
+  renderPets();
+  updateUI();
+}
+function renderPets() {
+  const grid = document.getElementById("petGrid");
+  grid.innerHTML = ownedPets.map((p,i) => `
+    <div class="pet-card${p.equipped?' on':''}" onclick="togglePet(${i})">
+      <div class="pet-name">${p.name}</div>
+      <div class="pet-bonus">+${(p.bonus*100).toFixed(1)}%</div>
+      <div style="font-size:0.65rem;color:var(--muted);margin-top:2px">${p.equipped?'✔ Equipped':''}</div>
+    </div>
+  `).join("");
+  const eq = ownedPets.filter(p=>p.equipped).map(p=>p.name).join(", ");
+  document.getElementById("equippedLabel").textContent = `Equipped: ${eq||"none"} (max 3)`;
+  calcPetBonus();
+}
+function togglePet(i) {
+  const p = ownedPets[i];
+  if (p.equipped) p.equipped = false;
+  else {
+    if (ownedPets.filter(x=>x.equipped).length >= 3) { toast("Max 3 pets"); return; }
+    p.equipped = true;
+  }
+  renderPets();
+}
+function autoEquipBest() {
+  ownedPets.forEach(p=>p.equipped=false);
+  [...ownedPets].sort((a,b)=>b.bonus-a.bonus).slice(0,3).forEach(p=>p.equipped=true);
+  renderPets();
+}
+function calcPetBonus() {
+  petBonusMult = 1 + ownedPets.filter(p=>p.equipped).reduce((s,p)=>s+p.bonus,0);
+}
+
+// ═══════════════════════════════════════════
+// LEADERBOARD
+// ═══════════════════════════════════════════
+function loadLB() {
+  try { leaderboard = JSON.parse(localStorage.getItem("beanLB2")||"[]"); } catch(e){ leaderboard=[]; }
+  renderLB();
+}
+function renderLB() {
+  const sorted = [...leaderboard].sort((a,b)=>b.score-a.score).slice(0,10);
+  document.getElementById("lbList").innerHTML = sorted.length
+    ? sorted.map((e,i) => `<div class="lb-entry"><span class="lb-rank">#${i+1}</span><span class="lb-name">${esc(e.name)}</span><span class="lb-score">${e.score}</span></div>`).join("")
+    : "<div style='color:var(--muted);font-size:0.8rem;text-align:center;padding:12px'>No scores yet!</div>";
+}
+function submitScore() {
+  let name = document.getElementById("playerName").value.trim() || "BeanMaster";
+  const score = fracture + prestige * 10;
+  leaderboard.push({ name, score });
+  leaderboard.sort((a,b)=>b.score-a.score);
+  leaderboard = leaderboard.slice(0,20);
+  localStorage.setItem("beanLB2", JSON.stringify(leaderboard));
+  renderLB();
+  toast("Score submitted!");
+}
+function esc(s) { return s.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+
+// ═══════════════════════════════════════════
+// CUTSCENE
+// ═══════════════════════════════════════════
+function playCutscene() {
+  const el = document.getElementById("cutscene");
+  el.classList.remove("gone");
+  document.getElementById("csText").innerHTML = `🌀 You reached The End...<small>But the simulation continues beyond infinity.</small>`;
+  setTimeout(() => el.classList.add("gone"), 5500);
+}
+
+// ═══════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════
+function toast(msg) {
+  const t = document.createElement("div");
+  t.className = "toast";
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2900);
+}
+
+// ═══════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════
+function switchTab(id) {
+  document.querySelectorAll(".tab-section").forEach(el => el.classList.remove("on"));
+  document.querySelectorAll(".tab").forEach(el => el.classList.remove("on"));
+  document.getElementById(id+"Tab").classList.add("on");
+  document.querySelector(`.tab[data-tab="${id}"]`).classList.add("on");
+}
+
+// ═══════════════════════════════════════════
+// SAVE / LOAD
+// ═══════════════════════════════════════════
+function saveGame() {
+  const s = { gas, clickPower, bots, botEff, prestige, globalMult, fracture,
+    costs: UPGRADES.map(u=>u.cost), ownedPets, critChance, doubleChance,
+    autoClickOn, currentZone, cutscenePlayed };
+  localStorage.setItem("beanEmpire2", JSON.stringify(s));
+}
+function loadGame() {
+  try {
+    const raw = localStorage.getItem("beanEmpire2");
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    gas=d.gas??0; clickPower=d.clickPower??1; bots=d.bots??0; botEff=d.botEff??1;
+    prestige=d.prestige??0; globalMult=d.globalMult??1; fracture=d.fracture??0;
+    critChance=d.critChance??0.05; doubleChance=d.doubleChance??0;
+    autoClickOn=d.autoClickOn??false; currentZone=d.currentZone??0; cutscenePlayed=d.cutscenePlayed??false;
+    if(d.costs) UPGRADES.forEach((u,i)=>u.cost=d.costs[i]??u.baseCost);
+    if(d.ownedPets) ownedPets=d.ownedPets;
+    if(autoClickOn) autoClickTimer=setInterval(()=>addGas(clickPower),1000);
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+loadGame();
+loadLB();
+renderPets();
+renderUpgrades();
+updateUI();
+startProd();
+setInterval(saveGame, 20000);
+toast("🫘 Click the bean to start your empire!");
 </script>
 </body>
 </html>
